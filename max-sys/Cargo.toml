@@ -10,6 +10,7 @@ authors.workspace = true
 documentation = "https://docs.rs/max-sys"
 keywords = ["modular", "max", "ffi", "bindings", "mojo"]
 categories = ["api-bindings", "external-ffi-bindings"]
+readme = "../README.md"
 build = "build.rs"
 
 [build-dependencies]

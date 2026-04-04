@@ -11,28 +11,69 @@ repository = "https://github.com/honeyspoon/pyroxide"
 authors = ["honeyspoon"]
 
 [workspace.lints.clippy]
-# Enable ALL pedantic lints. New ones added in future Rust versions
-# will automatically apply. We only disable specific ones below.
+# ── Lint groups (all enabled, new future lints apply automatically) ──
 pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
 
-# Hard denials
+# ── Restriction lints (cherry-picked, not the whole group) ──
 unwrap_used = "deny"
+expect_used = "warn"
 allow_attributes_without_reason = "deny"
+dbg_macro = "deny"
+print_stderr = { level = "allow", priority = 1 }             # needed for FFI panic reporting in trampoline
+todo = "warn"
+unimplemented = "deny"
+undocumented_unsafe_blocks = "warn"
+unnecessary_safety_comment = "warn"
+str_to_string = "warn"
+clone_on_ref_ptr = "warn"
+empty_enum_variants_with_brackets = "warn"
+error_impl_error = "warn"
+format_push_string = "warn"
+if_then_some_else_none = "warn"
+infinite_loop = "warn"
+lossy_float_literal = "warn"
+mem_forget = "warn"
+mixed_read_write_in_expression = "warn"
+mutex_atomic = "warn"
+needless_raw_strings = "warn"
+rc_buffer = "warn"
+rc_mutex = "warn"
+redundant_type_annotations = "warn"
+rest_pat_in_fully_bound_structs = "warn"
+same_name_method = "warn"
+self_named_module_files = "warn"
+semicolon_outside_block = "warn"
+try_err = "warn"
+unnecessary_self_imports = "warn"
+verbose_file_reads = "warn"
+wildcard_enum_match_arm = "warn"
 
-# Pedantic lints we opt out of (each with a reason)
-module_name_repetitions = { level = "allow", priority = 1 }  # MojoRef in bridge module is fine
+# ── Pedantic opt-outs (with reasons) ──
+module_name_repetitions = { level = "allow", priority = 1 }  # MojoRef in bridge module is clear
 must_use_candidate = { level = "allow", priority = 1 }       # too noisy for FFI handle methods
-missing_errors_doc = { level = "allow", priority = 1 }       # errors are obvious from signatures
-missing_panics_doc = { level = "allow", priority = 1 }       # panics are documented where non-obvious
+missing_errors_doc = { level = "allow", priority = 1 }       # errors obvious from return types
+missing_panics_doc = { level = "allow", priority = 1 }       # documented where non-obvious
 cast_possible_truncation = { level = "allow", priority = 1 } # intentional in FFI pointer casts
 cast_sign_loss = { level = "allow", priority = 1 }           # intentional in isize ↔ usize
-cast_precision_loss = { level = "allow", priority = 1 }      # intentional in f64 ↔ usize conversions
+cast_precision_loss = { level = "allow", priority = 1 }      # intentional in f64 ↔ usize
 cast_possible_wrap = { level = "allow", priority = 1 }       # intentional in pointer ↔ isize
-float_cmp = { level = "allow", priority = 1 }                # exact float comparison is intentional in tests
-similar_names = { level = "allow", priority = 1 }             # ma/mb/mc, da/db, ns_scalar/ns_simd are clear in context
-too_many_lines = { level = "allow", priority = 1 }            # examples are intentionally verbose for teaching
-unreadable_literal = { level = "allow", priority = 1 }        # 100_000 vs 100000 — both fine
+float_cmp = { level = "allow", priority = 1 }                # exact comparison intentional in tests
+similar_names = { level = "allow", priority = 1 }             # ma/mb/mc, da/db are clear in context
+too_many_lines = { level = "allow", priority = 1 }            # examples are verbose for teaching
+unreadable_literal = { level = "allow", priority = 1 }        # both 100_000 and 100000 fine
 cast_ptr_alignment = { level = "allow", priority = 1 }        # safetensors data is known-aligned
+
+derive_partial_eq_without_eq = { level = "allow", priority = 1 }  # f64 fields can't impl Eq
+
+# ── Nursery opt-outs ──
+missing_const_for_fn = { level = "allow", priority = 1 }     # many fns could be const but aren't worth it
+redundant_pub_crate = { level = "allow", priority = 1 }      # pub(crate) adds noise in a small crate
+option_if_let_else = { level = "allow", priority = 1 }       # match is often clearer than map_or_else
+
+# ── Cargo opt-outs ──
+multiple_crate_versions = { level = "allow", priority = 1 }  # transitive deps pull different versions
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

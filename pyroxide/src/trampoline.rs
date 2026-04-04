@@ -125,6 +125,7 @@ impl<T> MojoResult<T> {
     /// contexts — use [`catch_mojo_call`] instead.
     pub fn unwrap(self) -> T {
         assert!(self.is_ok(), "called unwrap on MojoResult::Err");
+        // SAFETY: assert above guarantees this is an Ok variant, so value is initialized
         unsafe { self.value.assume_init() }
     }
 }

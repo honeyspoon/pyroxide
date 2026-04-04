@@ -51,7 +51,7 @@ fn main() {
         b: 1.0,
     };
     let lum = unsafe { color_luminance(sky.as_mojo().addr()) };
-    let expected = 0.2126 * 0.4 + 0.7152 * 0.7 + 0.0722 * 1.0;
+    let expected = 0.0722f64.mul_add(1.0, 0.2126f64.mul_add(0.4, 0.7152 * 0.7));
     assert!((lum - expected).abs() < 1e-6);
     println!("  color_luminance = {lum:.4} [ok]");
 

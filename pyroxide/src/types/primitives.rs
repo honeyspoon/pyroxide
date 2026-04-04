@@ -43,7 +43,7 @@ impl Point {
     }
 
     pub fn length(&self) -> f64 {
-        (self.x * self.x + self.y * self.y).sqrt()
+        self.x.hypot(self.y)
     }
 }
 
@@ -114,7 +114,11 @@ impl Vec4 {
     }
 
     pub fn dot(&self, other: &Self) -> f64 {
-        self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
+        self.x.mul_add(
+            other.x,
+            self.y
+                .mul_add(other.y, self.z.mul_add(other.z, self.w * other.w)),
+        )
     }
 
     pub fn length(&self) -> f64 {

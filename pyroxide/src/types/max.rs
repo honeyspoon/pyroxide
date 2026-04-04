@@ -45,8 +45,17 @@ impl DType {
             Self::Int16 | Self::UInt16 | Self::Float16 | Self::BFloat16 => 2,
             Self::Int32 | Self::UInt32 | Self::Float32 => 4,
             Self::Int64 | Self::UInt64 | Self::Float64 => 8,
-            // All 1-byte types: bool, int8, uint8, float8 variants, sub-byte, unknown
-            _ => 1,
+            Self::Unknown
+            | Self::Bool
+            | Self::Float4E2M1FN
+            | Self::Float8E8M0FNU
+            | Self::Float8E3M4
+            | Self::Float8E4M3FN
+            | Self::Float8E4M3FNUZ
+            | Self::Float8E5M2
+            | Self::Float8E5M2FNUZ
+            | Self::Int8
+            | Self::UInt8 => 1,
         }
     }
 

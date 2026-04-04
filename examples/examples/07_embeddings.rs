@@ -91,7 +91,7 @@ fn main() {
     // Step 1: Download from HuggingFace
     println!("Downloading sentence-transformers/all-MiniLM-L6-v2...");
     let api = Api::new().expect("HuggingFace API");
-    let repo = api.model("sentence-transformers/all-MiniLM-L6-v2".to_string());
+    let repo = api.model("sentence-transformers/all-MiniLM-L6-v2".to_owned());
     let path = repo.get("model.safetensors").expect("download failed");
     println!("  cached: {}", path.display());
 

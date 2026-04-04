@@ -61,7 +61,7 @@ fn main() {
             mb.descriptor().as_mojo().addr(),
             mc.descriptor().as_mojo().addr(),
         );
-    }
+    };
     assert_eq!(mc.as_ref() as &[f32], &[58.0, 64.0, 139.0, 154.0]);
     println!("  matmul = {:?} [ok]", mc.as_ref() as &[f32]);
 

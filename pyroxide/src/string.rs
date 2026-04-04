@@ -45,6 +45,7 @@ impl<'a> MojoStr<'a> {
     ///
     /// The pointer must point to valid UTF-8 data of at least `len` bytes.
     pub unsafe fn as_str(&self) -> &'a str {
+        // SAFETY: caller guarantees ptr is valid UTF-8 for len bytes (see doc above)
         unsafe {
             let bytes = std::slice::from_raw_parts(self.ptr, self.len);
             std::str::from_utf8_unchecked(bytes)

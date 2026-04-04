@@ -1,3 +1,8 @@
+#![allow(
+    clippy::expect_used,
+    reason = "build scripts should panic with clear messages on failure"
+)]
+
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
