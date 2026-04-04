@@ -29,6 +29,14 @@ name = "06_comptime"
 name = "07_embeddings"
 [[example]]
 name = "08_abi_edge_cases"
+[[example]]
+name = "09_image_blur"
+[[example]]
+name = "10_tokenizer"
+[[example]]
+name = "11_neural_layer"
+[[example]]
+name = "12_accumulator"
 
 # Examples: same base as workspace but relaxed for teaching code
 [lints.clippy]
