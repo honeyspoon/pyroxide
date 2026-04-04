@@ -45,7 +45,7 @@
 //! }
 //!
 //! let v = Vec3 { x: 3.0, y: 4.0, z: 0.0 };
-//! let len = unsafe { vec3_length(v.as_mojo().addr()) };
+//! let len = unsafe { vec3_length(v.as_mojo().addr().as_raw()) };
 //! ```
 //!
 //! ## Feature flags
@@ -64,7 +64,7 @@ pub use zerocopy;
 
 pub mod prelude {
     pub use crate::abi::OutParam;
-    pub use crate::bridge::{FromMojo, IntoMojo, MojoMut, MojoRef, MojoSlice};
+    pub use crate::bridge::{FromMojo, IntoMojo, MojoAddr, MojoMut, MojoRef, MojoSlice};
     pub use crate::mojo_type;
     pub use crate::string::MojoStr;
     pub use crate::trampoline::{MojoError, MojoResult, catch_mojo_call};

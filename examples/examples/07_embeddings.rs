@@ -52,9 +52,9 @@ fn embed(emb_desc: &TensorDescriptor, hidden_dim: usize, ids: &[i64]) -> Tensor<
     let emb_out_desc = embeddings.descriptor();
     unsafe {
         embedding_lookup_f32(
-            emb_desc.as_mojo().addr(),
-            ids_desc.as_mojo().addr(),
-            emb_out_desc.as_mojo().addr(),
+            emb_desc.as_mojo().addr().as_raw(),
+            ids_desc.as_mojo().addr().as_raw(),
+            emb_out_desc.as_mojo().addr().as_raw(),
         );
     };
 
@@ -63,8 +63,8 @@ fn embed(emb_desc: &TensorDescriptor, hidden_dim: usize, ids: &[i64]) -> Tensor<
     let pool_out_desc = pooled.descriptor();
     unsafe {
         mean_pool_f32(
-            pool_in_desc.as_mojo().addr(),
-            pool_out_desc.as_mojo().addr(),
+            pool_in_desc.as_mojo().addr().as_raw(),
+            pool_out_desc.as_mojo().addr().as_raw(),
         );
     };
     pooled
@@ -79,8 +79,8 @@ fn tokenize(text: &str, vocab_size: usize) -> Vec<i64> {
 fn cosine(a: &Tensor<f32>, b: &Tensor<f32>) -> f32 {
     unsafe {
         cosine_similarity_f32(
-            a.descriptor().as_mojo().addr(),
-            b.descriptor().as_mojo().addr(),
+            a.descriptor().as_mojo().addr().as_raw(),
+            b.descriptor().as_mojo().addr().as_raw(),
         )
     }
 }
@@ -129,9 +129,9 @@ fn main() {
     );
     unsafe {
         embedding_lookup_f32(
-            emb_desc.as_mojo().addr(),
-            test_ids_desc.as_mojo().addr(),
-            test_emb.descriptor().as_mojo().addr(),
+            emb_desc.as_mojo().addr().as_raw(),
+            test_ids_desc.as_mojo().addr().as_raw(),
+            test_emb.descriptor().as_mojo().addr().as_raw(),
         );
     };
 
@@ -146,8 +146,8 @@ fn main() {
     let pooled = Tensor::<f32>::zeros(TensorShape::vector(hidden_dim as i64));
     unsafe {
         mean_pool_f32(
-            test_emb.descriptor().as_mojo().addr(),
-            pooled.descriptor().as_mojo().addr(),
+            test_emb.descriptor().as_mojo().addr().as_raw(),
+            pooled.descriptor().as_mojo().addr().as_raw(),
         );
     };
     let mut rust_pooled = vec![0.0f32; hidden_dim];
