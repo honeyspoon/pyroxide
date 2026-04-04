@@ -1,5 +1,7 @@
 # pyroxide
 
+[![crates.io](https://img.shields.io/crates/v/pyroxide.svg)](https://crates.io/crates/pyroxide)
+[![docs.rs](https://docs.rs/pyroxide/badge.svg)](https://docs.rs/pyroxide)
 [![CI](https://github.com/honeyspoon/pyroxide/actions/workflows/ci.yml/badge.svg)](https://github.com/honeyspoon/pyroxide/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://www.rust-lang.org)
@@ -37,10 +39,10 @@ Pyroxide lets Rust and Mojo share data with zero copies. Define types once in Ru
 | Module | What |
 |--------|------|
 | `bridge` | `IntoMojo`, `FromMojo`, `MojoRef`, `MojoMut`, `MojoSlice`, `MojoSliceMut` |
-| `abi` | ABI type mapping docs, `OutParam`, `MojoArg` |
-| `trampoline` | `catch_mojo_call`, `MojoResult`, `MojoError` |
+| `abi` | ABI type mapping docs, `OutParam` |
+| `trampoline` | `catch_mojo_call` (panic-safe FFI) |
 | `string` | `MojoStr` (ptr+len for FFI) |
-| `types::max` | `DType`, `Tensor<T>`, `TensorDescriptor`, `TensorShape` |
+| `types::max` | `DType`, `Tensor<T>`, `TensorView<T>`, `TensorDescriptor`, `TensorShape` |
 
 ## Prerequisites
 
@@ -49,12 +51,25 @@ Pyroxide lets Rust and Mojo share data with zero copies. Define types once in Ru
 
 ## Quick start
 
+Add to your `Cargo.toml`:
+```toml
+[dependencies]
+pyroxide = "0.1"
+```
+
+Or with MAX tensor types:
+```toml
+[dependencies]
+pyroxide = { version = "0.1", features = ["max"] }
+```
+
+Run the examples:
 ```sh
 git clone https://github.com/honeyspoon/pyroxide
 cd pyroxide
 cargo run -p pyroxide-examples --example 01_hello     # simplest possible call
 cargo run -p pyroxide-examples --example 07_embeddings # real HuggingFace model
-make test                                             # run all 7 examples
+make test                                             # run all 26 examples
 ```
 
 Mojo files are compiled automatically by `build.rs` — no manual steps.
@@ -134,9 +149,9 @@ def compute_energy(addr: Int) -> Float64:
 |-----------|----------|
 | `v.as_raw()` | ~1ns (pointer cast) |
 | `v.as_raw_mut()` | ~1ns |
-| `MojoSlice::new(&data).addr()` | 0 copies (read-only slice) |
-| `MojoSliceMut::new(&mut data).addr()` | 0 copies (mutable slice) |
-| `MojoStr::new(s).addr()` | 0 copies (string → ptr+len) |
+| `MojoSlice::new(&data).as_raw()` | 0 copies (read-only slice) |
+| `MojoSliceMut::new(&mut data).as_raw()` | 0 copies (mutable slice) |
+| `MojoStr::new(s).as_raw()` | 0 copies (string → ptr+len) |
 | `TensorDescriptor` | 0 copies |
 | `OutParam::call2(\|\| ...)` | 0ns overhead (MaybeUninit) |
 | `catch_mojo_call(\|\| ...)` | 0ns on success |
@@ -152,7 +167,7 @@ def compute_energy(addr: Int) -> Float64:
 
 | Flag | Enables |
 |------|---------|
-| `max` | `DType`, `TensorShape`, `TensorDescriptor`, `Tensor<T>`, `MojoDType` |
+| `max` | `DType`, `TensorShape`, `TensorDescriptor`, `Tensor<T>`, `TensorView<T>`, `MojoDType` |
 
 ## Status
 
@@ -160,15 +175,14 @@ Early stage. API will change.
 
 | Component | Status |
 |-----------|--------|
-| `mojo_type!`, `IntoMojo`, `MojoRef`/`MojoMut` | Tested across 12 examples |
-| `MojoSlice` / `MojoSliceMut` | Tested (image blur, SIMD, dtype) |
-| 
-| `MojoStr` | Tested (tokenizer, uppercase) |
+| `mojo_type!`, `IntoMojo`/`FromMojo` | 31 unit tests + 26 examples |
+| `MojoSlice` / `MojoSliceMut` | Tested across 15+ examples |
+| `MojoStr` | Tested (tokenizer, string output) |
 | `OutParam` | Tested (divmod, ABI edge cases) |
-| `TensorDescriptor`, `Tensor<T>` | Tested with HuggingFace + neural layer |
-| `catch_mojo_call`, `MojoResult` | Implemented, trampoline ready |
-| `abi` module (type mapping docs) | Empirically verified against Mojo 0.26 |
-| Proc macros (`#[mojo_fn]`) | Not implemented |
+| `catch_mojo_call` | Tested (panic recovery example) |
+| `Tensor<T>` / `TensorView<T>` | Tested with HuggingFace + neural layer |
+| `abi` module | Empirically verified against Mojo 0.26 |
+| Proc macros (`#[mojo_fn]`) | Not implemented — deferred to 0.2.0 |
 
 ## Non-goals
 
@@ -179,13 +193,16 @@ Early stage. API will change.
 ## Project layout
 
 ```
-pyroxide/           Core library
-max-sys/          Bindgen from MAX C headers (8 headers, 131 bindings)
+pyroxide/           Core library (31 unit tests)
+max-sys/            Bindgen from MAX C headers (8 headers, 131 bindings)
 examples/
-  mojo/           Mojo source files (auto-compiled by build.rs)
-  examples/       Rust example binaries
+  mojo/             Mojo source files (auto-compiled by build.rs)
+  examples/         26 Rust example binaries
+design/             13 Architecture Decision Records
 scripts/
-  fetch-headers.sh
+  fetch-headers.sh  Download MAX C headers from GitHub
+  pre-commit        Git pre-commit hook
+  check-docs.sh     Verify docs stay in sync
 ```
 
 ## License
