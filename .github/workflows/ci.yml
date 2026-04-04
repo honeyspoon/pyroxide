@@ -17,8 +17,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - run: cargo check --workspace --features pyroxide/max
-      - run: cargo clippy --workspace --features pyroxide/max -- -D warnings
+      # Only check library crates — examples need Mojo installed
+      - run: cargo check -p pyroxide --features max -p max-sys
+      - run: cargo clippy -p pyroxide --features max -p max-sys -- -D warnings
 
   test:
     name: Test (library)
@@ -26,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --workspace --features pyroxide/max
+      - run: cargo test -p pyroxide --features max -p max-sys
 
   fmt:
     name: Format
@@ -36,4 +37,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - run: cargo fmt --all -- --check
+      - run: cargo fmt -p pyroxide -p max-sys -- --check
