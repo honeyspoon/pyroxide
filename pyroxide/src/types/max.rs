@@ -1,6 +1,6 @@
 //! Types matching the Modular MAX ML framework (C API + Mojo kernel level).
 //!
-//! DType values match `max/include/max/c/types.h` (bit-flag encoded).
+//! `DType` values match `max/include/max/c/types.h` (bit-flag encoded).
 //! Tensor layout matches `ManagedTensorSlice` from MAX kernels.
 //!
 //! These are pure data structures — no FFI calls. Your application
@@ -42,17 +42,11 @@ pub enum DType {
 impl DType {
     pub const fn byte_width(self) -> usize {
         match self {
-            Self::Bool | Self::Int8 | Self::UInt8 => 1,
-            Self::Float8E8M0FNU
-            | Self::Float8E3M4
-            | Self::Float8E4M3FN
-            | Self::Float8E4M3FNUZ
-            | Self::Float8E5M2
-            | Self::Float8E5M2FNUZ => 1,
             Self::Int16 | Self::UInt16 | Self::Float16 | Self::BFloat16 => 2,
             Self::Int32 | Self::UInt32 | Self::Float32 => 4,
             Self::Int64 | Self::UInt64 | Self::Float64 => 8,
-            Self::Unknown | Self::Float4E2M1FN => 1,
+            // All 1-byte types: bool, int8, uint8, float8 variants, sub-byte, unknown
+            _ => 1,
         }
     }
 
@@ -151,7 +145,7 @@ impl<const N: usize> From<[i64; N]> for TensorShape {
 mojo_type! {
     /// Tensor descriptor for FFI. 152 bytes.
     ///
-    /// Offsets: dtype(0) rank(8) dims(16) strides(80) data_ptr(144)
+    /// Field offsets: `dtype`=0, `rank`=8, `dims`=16, `strides`=80, `data_ptr`=144
     pub struct TensorDescriptor {
         pub dtype: u8,
         _pad: [u8; 7],
@@ -214,12 +208,16 @@ impl<T: Copy + Default + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> 
     }
 
     pub fn descriptor(&self) -> TensorDescriptor {
-        TensorDescriptor::contiguous(T::DTYPE, &self.shape, self.data.as_ptr() as *const u8)
+        TensorDescriptor::contiguous(T::DTYPE, &self.shape, self.data.as_ptr().cast::<u8>())
     }
 
     pub fn shape(&self) -> &TensorShape {
         &self.shape
     }
+    #[allow(
+        clippy::unused_self,
+        reason = "consistent accessor API alongside shape()/numel()"
+    )]
     pub fn dtype(&self) -> DType {
         T::DTYPE
     }
@@ -272,7 +270,7 @@ impl<T: Copy + fmt::Display + zerocopy::IntoBytes + zerocopy::Immutable + MojoDT
 
 // ── MojoDType trait ──
 
-/// Maps Rust primitives to MAX DType values.
+/// Maps Rust primitives to MAX `DType` values.
 pub trait MojoDType: Copy + Default + zerocopy::IntoBytes + zerocopy::Immutable {
     const DTYPE: DType;
 }

@@ -4,11 +4,13 @@
 //! These are opaque-struct-based bindings — you interact through
 //! function pointers, not by reading struct fields directly.
 //!
-//! For a safe, ergonomic API, use `mojo-bridge` instead.
+//! For a safe, ergonomic API, use `pyroxide` instead.
 
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-#![allow(dead_code)]
+#![allow(non_upper_case_globals, reason = "C API naming convention")]
+#![allow(non_camel_case_types, reason = "C API naming convention")]
+#![allow(non_snake_case, reason = "C API naming convention")]
+#![allow(dead_code, reason = "bindgen generates all symbols; not all are used")]
+#![allow(clippy::pedantic, reason = "generated code, not hand-written")]
+#![allow(clippy::unwrap_used, reason = "generated code, not hand-written")]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

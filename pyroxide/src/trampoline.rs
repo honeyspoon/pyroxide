@@ -5,7 +5,7 @@
 //! wraps any closure in `catch_unwind`, converting panics into a safe
 //! error return.
 //!
-//! Inspired by PyO3's trampoline layer (`impl_/trampoline.rs`).
+//! Inspired by `PyO3`'s trampoline layer (`impl_/trampoline.rs`).
 //!
 //! # Example
 //!
@@ -28,7 +28,11 @@ fn panic_message(payload: &Box<dyn Any + Send>) -> &str {
     payload
         .downcast_ref::<&str>()
         .copied()
-        .or_else(|| payload.downcast_ref::<String>().map(|s| s.as_str()))
+        .or_else(|| {
+            payload
+                .downcast_ref::<String>()
+                .map(std::string::String::as_str)
+        })
         .unwrap_or("unknown panic")
 }
 

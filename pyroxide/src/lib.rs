@@ -8,7 +8,7 @@
 //! Pyroxide follows the same layered design as [PyO3](https://pyo3.rs),
 //! adapted for Mojo's value-oriented memory model:
 //!
-//! | Layer | PyO3 equivalent | Pyroxide |
+//! | Layer | `PyO3` equivalent | Pyroxide |
 //! |-------|-----------------|--------|
 //! | Type declaration | `#[pyclass]` | [`mojo_type!`] |
 //! | Rust → Mojo | `IntoPyObject` | [`IntoMojo`](bridge::IntoMojo) |
@@ -51,7 +51,7 @@
 //! ## Feature flags
 //!
 //! - **`max`** — Types matching the Modular MAX ML framework
-//!   (DType, TensorShape, TensorDescriptor, Tensor)
+//!   (`DType`, `TensorShape`, `TensorDescriptor`, Tensor)
 
 pub mod bridge;
 pub mod string;

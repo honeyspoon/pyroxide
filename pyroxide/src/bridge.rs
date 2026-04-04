@@ -2,7 +2,7 @@
 //!
 //! # Conversion traits
 //!
-//! | Trait | Direction | PyO3 equivalent |
+//! | Trait | Direction | `PyO3` equivalent |
 //! |-------|-----------|-----------------|
 //! | [`IntoMojo`] | Rust → Mojo | `IntoPyObject` |
 //! | [`FromMojo`] | Mojo → Rust | `FromPyObject` |
@@ -12,7 +12,7 @@
 //!
 //! # Handle types
 //!
-//! | Handle | Access | PyO3 equivalent |
+//! | Handle | Access | `PyO3` equivalent |
 //! |--------|--------|-----------------|
 //! | [`MojoRef`] | Immutable borrow | `Bound<'py, T>` |
 //! | [`MojoMut`] | Mutable borrow | `PyRefMut<T>` |
@@ -95,7 +95,7 @@ pub struct MojoRef<'a, T: IntoBytes + Immutable> {
 }
 
 impl<'a, T: IntoBytes + Immutable> MojoRef<'a, T> {
-    #[inline(always)]
+    #[inline]
     pub fn new(val: &'a T) -> Self {
         Self {
             ptr: NonNull::from(val),
@@ -104,13 +104,13 @@ impl<'a, T: IntoBytes + Immutable> MojoRef<'a, T> {
     }
 
     /// The raw address as `isize` — pass this to Mojo's `Int` parameter.
-    #[inline(always)]
+    #[inline]
     pub fn addr(&self) -> isize {
         self.ptr.as_ptr() as isize
     }
 
     /// The underlying typed pointer.
-    #[inline(always)]
+    #[inline]
     pub fn as_ptr(&self) -> *const T {
         self.ptr.as_ptr()
     }
@@ -127,7 +127,7 @@ pub struct MojoMut<'a, T: IntoBytes + FromBytes> {
 }
 
 impl<'a, T: IntoBytes + FromBytes> MojoMut<'a, T> {
-    #[inline(always)]
+    #[inline]
     pub fn new(val: &'a mut T) -> Self {
         Self {
             ptr: NonNull::from(&mut *val),
@@ -135,12 +135,12 @@ impl<'a, T: IntoBytes + FromBytes> MojoMut<'a, T> {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn addr(&self) -> isize {
         self.ptr.as_ptr() as isize
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn as_mut_ptr(&self) -> *mut T {
         self.ptr.as_ptr()
     }
@@ -158,7 +158,7 @@ pub struct MojoSlice<'a, T: IntoBytes + Immutable> {
 }
 
 impl<'a, T: IntoBytes + Immutable> MojoSlice<'a, T> {
-    #[inline(always)]
+    #[inline]
     pub fn new(slice: &'a [T]) -> Self {
         Self {
             ptr: NonNull::from(slice).cast(),
@@ -167,22 +167,22 @@ impl<'a, T: IntoBytes + Immutable> MojoSlice<'a, T> {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn addr(&self) -> isize {
         self.ptr.as_ptr() as isize
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn len(&self) -> usize {
         self.len
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn size_bytes(&self) -> usize {
         self.len * std::mem::size_of::<T>()
     }

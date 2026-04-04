@@ -19,3 +19,6 @@ max = ["dep:max-sys"]
 [dependencies]
 zerocopy = { version = "0.8", features = ["derive"] }
 max-sys = { path = "../max-sys", optional = true }
+
+[lints]
+workspace = true

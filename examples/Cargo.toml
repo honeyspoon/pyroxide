@@ -27,3 +27,6 @@ name = "05_dtype_generic"
 name = "06_comptime"
 [[example]]
 name = "07_embeddings"
+
+[lints]
+workspace = true

@@ -6,15 +6,19 @@ fn main() {
     let mojo_dir = manifest_dir.join("mojo");
     let out_dir = manifest_dir.join("target").join("mojo-libs");
 
-    std::fs::create_dir_all(&out_dir).unwrap();
+    std::fs::create_dir_all(&out_dir).expect("failed to create mojo-libs dir");
     println!("cargo:rustc-link-search=native={}", out_dir.display());
 
     let mojo = find_mojo();
 
-    for entry in std::fs::read_dir(&mojo_dir).unwrap() {
-        let path = entry.unwrap().path();
+    for entry in std::fs::read_dir(&mojo_dir).expect("failed to read mojo/ dir") {
+        let path = entry.expect("failed to read dir entry").path();
         if path.extension().is_some_and(|e| e == "mojo") {
-            let stem = path.file_stem().unwrap().to_str().unwrap();
+            let stem = path
+                .file_stem()
+                .expect("no file stem")
+                .to_str()
+                .expect("file stem is not UTF-8");
             let dylib = out_dir.join(format!("lib{stem}.dylib"));
 
             println!("cargo:rerun-if-changed={}", path.display());
@@ -26,9 +30,7 @@ fn main() {
                 .status()
                 .unwrap_or_else(|e| panic!("failed to run {}: {e}", mojo.display()));
 
-            if !status.success() {
-                panic!("mojo build failed for {}", path.display());
-            }
+            assert!(status.success(), "mojo build failed for {}", path.display());
 
             println!("cargo:rustc-link-lib=dylib={stem}");
         }
@@ -42,8 +44,8 @@ fn find_mojo() -> PathBuf {
     }
 
     let home = PathBuf::from(std::env::var("HOME").unwrap_or_default());
-    for subpath in ["/.pixi/bin/mojo", "/.modular/bin/mojo"] {
-        let candidate = home.join(&subpath[1..]); // strip leading /
+    for subpath in [".pixi/bin/mojo", ".modular/bin/mojo"] {
+        let candidate = home.join(subpath);
         if candidate.is_file() {
             return candidate;
         }
