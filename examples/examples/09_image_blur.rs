@@ -34,11 +34,11 @@ fn main() {
 
     // Blur via Mojo — src is read-only (MojoSlice), dst is written (MojoSliceMut)
     let src_s = MojoSlice::new(&src);
-    let mut dst_s = MojoSliceMut::new(&mut dst);
+    let dst_s = MojoSliceMut::new(&mut dst);
     unsafe {
         box_blur_rgb(
-            src_s.addr().as_raw(),
-            dst_s.addr().as_raw(),
+            src_s.as_raw(),
+            dst_s.as_raw(),
             width as isize,
             height as isize,
         );
@@ -58,9 +58,8 @@ fn main() {
     println!("  edge pixels in valid range [ok]");
 
     // Brightness should be roughly preserved by box blur
-    let src_bright = unsafe { brightness_f32(src_s.addr().as_raw(), n_pixels as isize) };
-    let dst_bright =
-        unsafe { brightness_f32(MojoSlice::new(&dst).addr().as_raw(), n_pixels as isize) };
+    let src_bright = unsafe { brightness_f32(src_s.as_raw(), n_pixels as isize) };
+    let dst_bright = unsafe { brightness_f32(MojoSlice::new(&dst).as_raw(), n_pixels as isize) };
     assert!(
         (src_bright - dst_bright).abs() < 0.05,
         "brightness should be preserved: src={src_bright:.4}, dst={dst_bright:.4}"

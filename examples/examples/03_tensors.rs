@@ -26,19 +26,14 @@ unsafe extern "C" {
 fn main() {
     // ── Sum: Mojo reads 5 elements via TensorDescriptor ──
     let t = Tensor::<f64>::from_data(TensorShape::vector(5), vec![1.0, 2.0, 3.0, 4.0, 5.0]);
-    let sum = unsafe { tensor_sum_f64(t.descriptor().as_mojo().addr().as_raw()) };
+    let sum = unsafe { tensor_sum_f64(t.descriptor().as_raw()) };
     assert_eq!(sum, 15.0);
     println!("  sum([1..5]) = {sum} [ok]");
 
     // ── Dot product: two descriptors, one result ──
     let a = Tensor::<f64>::from_slice([3].into(), &[1.0, 2.0, 3.0]);
     let b = Tensor::<f64>::from_slice([3].into(), &[4.0, 5.0, 6.0]);
-    let dot = unsafe {
-        tensor_dot_f64(
-            a.descriptor().as_mojo().addr().as_raw(),
-            b.descriptor().as_mojo().addr().as_raw(),
-        )
-    };
+    let dot = unsafe { tensor_dot_f64(a.descriptor().as_raw(), b.descriptor().as_raw()) };
     assert_eq!(dot, 32.0);
     println!("  dot = {dot} [ok]");
 
@@ -57,9 +52,9 @@ fn main() {
     let mc = Tensor::<f32>::zeros(TensorShape::matrix(2, 2));
     unsafe {
         tensor_matmul_f32(
-            ma.descriptor().as_mojo().addr().as_raw(),
-            mb.descriptor().as_mojo().addr().as_raw(),
-            mc.descriptor().as_mojo().addr().as_raw(),
+            ma.descriptor().as_raw(),
+            mb.descriptor().as_raw(),
+            mc.descriptor().as_raw(),
         );
     };
     assert_eq!(mc.as_ref() as &[f32], &[58.0, 64.0, 139.0, 154.0]);

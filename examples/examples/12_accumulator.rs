@@ -28,26 +28,22 @@ unsafe extern "C" {
 
 impl Stats {
     fn init(&mut self) {
-        unsafe { stats_init(self.as_mojo_mut().addr().as_raw()) };
+        unsafe { stats_init(self.as_raw_mut()) };
     }
 
     fn update(&mut self, data: &[f64]) {
         let s = MojoSlice::new(data);
         unsafe {
-            stats_update(
-                self.as_mojo_mut().addr().as_raw(),
-                s.addr().as_raw(),
-                s.len() as isize,
-            );
+            stats_update(self.as_raw_mut(), s.as_raw(), s.len() as isize);
         };
     }
 
     fn mean(&self) -> f64 {
-        unsafe { stats_mean(self.as_mojo().addr().as_raw()) }
+        unsafe { stats_mean(self.as_raw()) }
     }
 
     fn variance(&self) -> f64 {
-        unsafe { stats_variance(self.as_mojo().addr().as_raw()) }
+        unsafe { stats_variance(self.as_raw()) }
     }
 }
 
