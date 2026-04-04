@@ -40,6 +40,10 @@ name = "10_tokenizer"
 name = "11_neural_layer"
 [[example]]
 name = "12_accumulator"
+[[example]]
+name = "13_sorting"
+[[example]]
+name = "14_mandelbrot"
 
 # Examples: same base as workspace but relaxed for teaching code
 [lints.clippy]

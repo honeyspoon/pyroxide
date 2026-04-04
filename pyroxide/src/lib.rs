@@ -64,9 +64,7 @@ pub use zerocopy;
 
 pub mod prelude {
     pub use crate::abi::OutParam;
-    pub use crate::bridge::{
-        FromMojo, IntoMojo, MojoAddr, MojoMut, MojoRef, MojoSlice, MojoSliceMut,
-    };
+    pub use crate::bridge::{FromMojo, IntoMojo, MojoMut, MojoRef, MojoSlice, MojoSliceMut};
     pub use crate::mojo_type;
     pub use crate::string::MojoStr;
     pub use crate::trampoline::catch_mojo_call;

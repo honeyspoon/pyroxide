@@ -20,7 +20,7 @@ unsafe extern "C" {
 }
 
 let v = Vec3 { x: 3.0, y: 4.0, z: 0.0 };
-let len = unsafe { vec3_length(v.as_mojo().addr().as_raw()) };
+let len = unsafe { vec3_length(v.as_raw()) };
 ```
 
 ## Overview
@@ -36,7 +36,7 @@ Pyroxide lets Rust and Mojo share data with zero copies. Define types once in Ru
 
 | Module | What |
 |--------|------|
-| `bridge` | `IntoMojo`, `FromMojo`, `MojoRef`, `MojoMut`, `MojoSlice`, `MojoSliceMut`, `MojoAddr` |
+| `bridge` | `IntoMojo`, `FromMojo`, `MojoRef`, `MojoMut`, `MojoSlice`, `MojoSliceMut` |
 | `abi` | ABI type mapping docs, `OutParam`, `MojoArg` |
 | `trampoline` | `catch_mojo_call`, `MojoResult`, `MojoError` |
 | `string` | `MojoStr` (ptr+len for FFI) |
@@ -77,6 +77,8 @@ Progressive tutorial — each builds on the previous.
 | 10 | [`tokenizer`](examples/examples/10_tokenizer.rs) | `MojoStr` string passing, variable-length output |
 | 11 | [`neural_layer`](examples/examples/11_neural_layer.rs) | Linear + ReLU + softmax, 4 `TensorDescriptor`s |
 | 12 | [`accumulator`](examples/examples/12_accumulator.rs) | Stateful struct, repeated `MojoMut` across calls |
+| 13 | [`sorting`](examples/examples/13_sorting.rs) | In-place sort + reverse, verify against Rust |
+| 14 | [`mandelbrot`](examples/examples/14_mandelbrot.rs) | Compute-heavy grid, ASCII visualization |
 
 ## How it works
 
@@ -98,7 +100,7 @@ unsafe extern "C" {
 }
 
 let p = Particle { pos: [0.0; 3], vel: [1.0; 3], mass: 2.0 };
-let energy = unsafe { compute_energy(p.as_mojo().addr().as_raw()) };
+let energy = unsafe { compute_energy(p.as_raw()) };
 ```
 
 ### Mojo side
@@ -118,8 +120,8 @@ def compute_energy(addr: Int) -> Float64:
 
 | Operation | Overhead |
 |-----------|----------|
-| `v.as_mojo().addr().as_raw()` | ~1ns (pointer cast) |
-| `v.as_mojo_mut().addr().as_raw()` | ~1ns |
+| `v.as_raw()` | ~1ns (pointer cast) |
+| `v.as_raw_mut()` | ~1ns |
 | `MojoSlice::new(&data).addr()` | 0 copies (read-only slice) |
 | `MojoSliceMut::new(&mut data).addr()` | 0 copies (mutable slice) |
 | `MojoStr::new(s).addr()` | 0 copies (string → ptr+len) |
@@ -148,7 +150,7 @@ Early stage. API will change.
 |-----------|--------|
 | `mojo_type!`, `IntoMojo`, `MojoRef`/`MojoMut` | Tested across 12 examples |
 | `MojoSlice` / `MojoSliceMut` | Tested (image blur, SIMD, dtype) |
-| `MojoAddr` (typed address newtype) | Tested, zero-cost verified via asm |
+| 
 | `MojoStr` | Tested (tokenizer, uppercase) |
 | `OutParam` | Tested (divmod, ABI edge cases) |
 | `TensorDescriptor`, `Tensor<T>` | Tested with HuggingFace + neural layer |

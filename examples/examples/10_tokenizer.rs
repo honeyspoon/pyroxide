@@ -55,11 +55,7 @@ fn mojo_uppercase(text: &str) -> String {
     let s = MojoStr::new(text);
     let mut dst = vec![0u8; text.len()];
     unsafe {
-        to_uppercase(
-            s.as_raw(),
-            pyroxide::bridge::MojoAddr::from_ptr(dst.as_mut_ptr()).as_raw(),
-            s.len_isize(),
-        );
+        to_uppercase(s.as_raw(), dst.as_mut_ptr() as isize, s.len_isize());
     }
     String::from_utf8(dst).expect("uppercase produced invalid UTF-8")
 }
