@@ -295,3 +295,155 @@ impl_mojo_dtype! {
     i8  => Int8,    i16 => Int16,   i32 => Int32,  i64 => Int64,
     u8  => UInt8,   u16 => UInt16,  u32 => UInt32, u64 => UInt64,
 }
+
+// ── TensorView ──
+
+/// Borrowed tensor view — zero-copy over external data (e.g., safetensors mmap).
+///
+/// Unlike [`Tensor<T>`] which owns a `Vec<T>`, `TensorView` borrows a `&[T]`.
+/// Use this when you have data from an external source and want to pass it
+/// to Mojo without copying.
+///
+/// ```rust,ignore
+/// let weights: &[f32] = /* from safetensors */;
+/// let view = TensorView::new(TensorShape::matrix(vocab, hidden), weights);
+/// let desc = view.descriptor();
+/// unsafe { mojo_fn(desc.as_raw()) };
+/// ```
+pub struct TensorView<'a, T: Copy + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> {
+    data: &'a [T],
+    shape: TensorShape,
+}
+
+impl<'a, T: Copy + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> TensorView<'a, T> {
+    pub fn new(shape: TensorShape, data: &'a [T]) -> Self {
+        assert_eq!(
+            shape.numel(),
+            data.len(),
+            "shape has {} elements but slice has {}",
+            shape.numel(),
+            data.len()
+        );
+        Self { data, shape }
+    }
+
+    pub fn descriptor(&self) -> TensorDescriptor {
+        TensorDescriptor::contiguous(T::DTYPE, &self.shape, self.data.as_ptr().cast::<u8>())
+    }
+
+    pub fn shape(&self) -> &TensorShape {
+        &self.shape
+    }
+
+    #[allow(
+        clippy::unused_self,
+        reason = "consistent accessor API alongside shape()"
+    )]
+    pub fn dtype(&self) -> DType {
+        T::DTYPE
+    }
+
+    pub fn data(&self) -> &'a [T] {
+        self.data
+    }
+
+    pub fn numel(&self) -> usize {
+        self.data.len()
+    }
+}
+
+impl<T: Copy + fmt::Debug + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> fmt::Debug
+    for TensorView<'_, T>
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TensorView")
+            .field("dtype", &std::any::type_name::<T>())
+            .field("shape", &format_args!("{}", self.shape))
+            .field("data", &&self.data[..self.data.len().min(8)])
+            .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tensor_shape_basics() {
+        let s = TensorShape::vector(5);
+        assert_eq!(s.ndim(), 1);
+        assert_eq!(s.numel(), 5);
+        assert_eq!(s.as_slice(), &[5]);
+        assert_eq!(s.to_string(), "(5)");
+    }
+
+    #[test]
+    fn tensor_shape_matrix() {
+        let s = TensorShape::matrix(3, 4);
+        assert_eq!(s.ndim(), 2);
+        assert_eq!(s.numel(), 12);
+        assert_eq!(s.to_string(), "(3, 4)");
+    }
+
+    #[test]
+    fn tensor_shape_from_array() {
+        let s = TensorShape::from([2, 3, 4]);
+        assert_eq!(s.ndim(), 3);
+        assert_eq!(s.numel(), 24);
+    }
+
+    #[test]
+    fn tensor_zeros() {
+        let t = Tensor::<f64>::zeros(TensorShape::vector(10));
+        assert_eq!(t.len(), 10);
+        assert!(t.iter().all(|&x| x == 0.0));
+    }
+
+    #[test]
+    fn tensor_from_data() {
+        let t = Tensor::<f32>::from_data(TensorShape::matrix(2, 3), vec![1.0; 6]);
+        assert_eq!(t.numel(), 6);
+        assert_eq!(t.shape().ndim(), 2);
+    }
+
+    #[test]
+    fn tensor_descriptor_layout() {
+        let t = Tensor::<f64>::from_data(TensorShape::vector(5), vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+        let desc = t.descriptor();
+        assert_eq!(desc.dtype, DType::Float64 as u8);
+        assert_eq!(desc.rank, 1);
+        assert_eq!(desc.dims[0], 5);
+        assert_ne!(desc.data_ptr, 0);
+    }
+
+    #[test]
+    fn tensor_view_zero_copy() {
+        let data = vec![1.0f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let view = TensorView::new(TensorShape::matrix(2, 3), &data);
+        assert_eq!(view.numel(), 6);
+        assert_eq!(view.dtype(), DType::Float32);
+
+        // Descriptor should point to the original data, not a copy
+        let desc = view.descriptor();
+        assert_eq!(desc.data_ptr, data.as_ptr() as i64);
+    }
+
+    #[test]
+    fn dtype_byte_width() {
+        assert_eq!(DType::Float32.byte_width(), 4);
+        assert_eq!(DType::Float64.byte_width(), 8);
+        assert_eq!(DType::Int8.byte_width(), 1);
+        assert_eq!(DType::Int64.byte_width(), 8);
+        assert_eq!(DType::Bool.byte_width(), 1);
+    }
+
+    #[test]
+    fn dtype_classification() {
+        assert!(DType::Float32.is_float());
+        assert!(!DType::Float32.is_integer());
+        assert!(DType::Int32.is_integer());
+        assert!(DType::Int32.is_signed());
+        assert!(DType::UInt32.is_integer());
+        assert!(!DType::UInt32.is_signed());
+    }
+}

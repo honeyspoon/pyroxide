@@ -220,3 +220,115 @@ impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
         self.len * std::mem::size_of::<T>()
     }
 }
+
+// ── Tests ──
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[repr(C)]
+    #[derive(
+        Debug,
+        Clone,
+        Copy,
+        PartialEq,
+        zerocopy::IntoBytes,
+        zerocopy::FromBytes,
+        zerocopy::Immutable,
+        zerocopy::KnownLayout,
+    )]
+    struct TestPoint {
+        x: f64,
+        y: f64,
+    }
+
+    #[test]
+    fn as_raw_returns_valid_address() {
+        let p = TestPoint { x: 1.0, y: 2.0 };
+        let addr = p.as_raw();
+        assert_ne!(addr, 0);
+        // Round-trip: reconstruct reference from address
+        let ptr = addr as *const TestPoint;
+        let recovered = unsafe { &*ptr };
+        assert_eq!(recovered.x, 1.0);
+        assert_eq!(recovered.y, 2.0);
+    }
+
+    #[test]
+    fn as_raw_mut_allows_write() {
+        let mut val = 42.0f64;
+        let addr = val.as_raw_mut();
+        unsafe { *(addr as *mut f64) = 99.0 };
+        assert_eq!(val, 99.0);
+    }
+
+    #[test]
+    fn mojo_ref_preserves_address() {
+        let p = TestPoint { x: 3.0, y: 4.0 };
+        let r = p.as_mojo();
+        assert_eq!(r.as_raw(), &p as *const TestPoint as isize);
+        assert_eq!(r.as_ptr(), &p as *const TestPoint);
+    }
+
+    #[test]
+    fn mojo_mut_preserves_address() {
+        let mut p = TestPoint { x: 1.0, y: 2.0 };
+        let addr = &mut p as *mut TestPoint as isize;
+        let m = p.as_mojo_mut();
+        assert_eq!(m.as_raw(), addr);
+    }
+
+    #[test]
+    fn mojo_slice_ptr_and_len() {
+        let data = [1.0f64, 2.0, 3.0];
+        let s = MojoSlice::new(&data);
+        assert_eq!(s.len(), 3);
+        assert!(!s.is_empty());
+        assert_eq!(s.size_bytes(), 24); // 3 * 8
+        assert_eq!(s.as_raw(), data.as_ptr() as isize);
+    }
+
+    #[test]
+    fn mojo_slice_empty() {
+        let empty: &[f64] = &[];
+        let s = MojoSlice::new(empty);
+        assert_eq!(s.len(), 0);
+        assert!(s.is_empty());
+        assert_eq!(s.size_bytes(), 0);
+    }
+
+    #[test]
+    fn mojo_slice_mut_ptr_and_len() {
+        let mut data = [1.0f64, 2.0, 3.0];
+        let s = MojoSliceMut::new(&mut data);
+        assert_eq!(s.len(), 3);
+        assert_eq!(s.size_bytes(), 24);
+    }
+
+    #[test]
+    fn from_mojo_bytes_roundtrip() {
+        let p = TestPoint { x: 1.5, y: 2.5 };
+        let bytes = zerocopy::IntoBytes::as_bytes(&p);
+        let recovered = TestPoint::from_mojo_bytes(bytes).expect("roundtrip failed");
+        assert_eq!(*recovered, p);
+    }
+
+    #[test]
+    fn from_mojo_bytes_wrong_size() {
+        let bytes = [0u8; 3]; // too small for TestPoint (16 bytes)
+        assert!(TestPoint::from_mojo_bytes(&bytes).is_none());
+    }
+
+    #[test]
+    fn primitives_implement_into_mojo() {
+        // Verify blanket impl works for primitive types
+        let v: f64 = 3.14;
+        let addr = v.as_raw();
+        assert_ne!(addr, 0);
+
+        let i: i32 = 42;
+        let addr2 = i.as_raw();
+        assert_ne!(addr2, 0);
+    }
+}

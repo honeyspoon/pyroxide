@@ -3,24 +3,7 @@
 //! Zero-copy FFI bridge between Rust and Mojo — the glowing bridge
 //! between oxidation and fire.
 //!
-//! ## Architecture
-//!
-//! Pyroxide follows the same layered design as [PyO3](https://pyo3.rs),
-//! adapted for Mojo's value-oriented memory model:
-//!
-//! | Layer | `PyO3` equivalent | Pyroxide |
-//! |-------|-----------------|--------|
-//! | Type declaration | `#[pyclass]` | [`mojo_type!`] |
-//! | Rust → Mojo | `IntoPyObject` | [`IntoMojo`](bridge::IntoMojo) |
-//! | Mojo → Rust | `FromPyObject` | [`FromMojo`](bridge::FromMojo) |
-//! | Pointer handles | `Bound<'py, T>` | [`MojoRef`](bridge::MojoRef) / [`MojoMut`](bridge::MojoMut) |
-//! | Error handling | `PyResult` + trampoline | [`MojoResult`](trampoline::MojoResult) + [`catch_mojo_call`](trampoline::catch_mojo_call) |
-//! | String passing | `PyString` | [`MojoStr`](string::MojoStr) |
-//!
 //! ## Safety model
-//!
-//! Pyroxide wraps the raw `unsafe` FFI boundary in typed, lifetime-bound
-//! handles. The safety guarantees:
 //!
 //! - **No dangling pointers**: [`MojoRef`](bridge::MojoRef) ties the pointer's
 //!   validity to the Rust borrow's lifetime.
@@ -29,7 +12,6 @@
 //! - **No layout mismatch**: [`mojo_type!`] enforces `#[repr(C)]` and zerocopy
 //!   derives at compile time.
 //! - **Ownership is explicit**: Rust owns the data, Mojo borrows via pointer.
-//!   Mojo must not store pointers beyond the call duration.
 //!
 //! ## Quick start
 //!
@@ -51,7 +33,7 @@
 //! ## Feature flags
 //!
 //! - **`max`** — Types matching the Modular MAX ML framework
-//!   (`DType`, `TensorShape`, `TensorDescriptor`, Tensor)
+//!   (`DType`, `TensorShape`, `TensorDescriptor`, `Tensor`, `TensorView`)
 
 pub mod abi;
 pub mod bridge;
@@ -78,28 +60,6 @@ pub mod prelude {
 /// Adds `#[repr(C)]` and all zerocopy derives automatically.
 /// The struct implements [`IntoMojo`](bridge::IntoMojo) and
 /// [`FromMojo`](bridge::FromMojo).
-///
-/// # Example
-///
-/// ```rust,ignore
-/// use pyroxide::prelude::*;
-///
-/// mojo_type! {
-///     /// A particle in 2D space.
-///     pub struct Particle {
-///         pub x: f64,
-///         pub y: f64,
-///         pub mass: f64,
-///     }
-/// }
-///
-/// // The struct now has:
-/// //   .as_mojo()     → MojoRef (immutable pointer handle)
-/// //   .as_mojo_mut() → MojoMut (mutable pointer handle)
-/// //   #[repr(C)]     → stable memory layout
-/// //   IntoBytes       → can be viewed as &[u8]
-/// //   FromBytes       → can be reinterpreted from &[u8]
-/// ```
 #[macro_export]
 macro_rules! mojo_type {
     (
@@ -121,4 +81,40 @@ macro_rules! mojo_type {
             $($field_vis $field : $ty),*
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::prelude::*;
+
+    mojo_type! {
+        pub struct TestVec2 {
+            pub x: f64,
+            pub y: f64,
+        }
+    }
+
+    #[test]
+    fn mojo_type_is_repr_c() {
+        assert_eq!(std::mem::size_of::<TestVec2>(), 16);
+    }
+
+    #[test]
+    fn mojo_type_has_into_mojo() {
+        let v = TestVec2 { x: 1.0, y: 2.0 };
+        assert_ne!(v.as_raw(), 0);
+    }
+
+    #[test]
+    fn mojo_type_has_from_mojo() {
+        let mut v = TestVec2 { x: 0.0, y: 0.0 };
+        assert_ne!(v.as_raw_mut(), 0);
+    }
+
+    #[test]
+    fn mojo_type_is_copy_and_eq() {
+        let a = TestVec2 { x: 1.0, y: 2.0 };
+        let b = a;
+        assert_eq!(a, b);
+    }
 }

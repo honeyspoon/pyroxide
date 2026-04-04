@@ -45,3 +45,30 @@ pub fn catch_mojo_call<T: Default>(f: impl FnOnce() -> T) -> T {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn success_returns_value() {
+        let result = catch_mojo_call(|| 42i32);
+        assert_eq!(result, 42);
+    }
+
+    #[test]
+    fn panic_returns_default() {
+        let result: f64 = catch_mojo_call(|| {
+            panic!("test panic");
+        });
+        assert_eq!(result, 0.0); // f64::default()
+    }
+
+    #[test]
+    fn panic_returns_false_for_bool() {
+        let result: bool = catch_mojo_call(|| {
+            panic!("test");
+        });
+        assert!(!result);
+    }
+}
