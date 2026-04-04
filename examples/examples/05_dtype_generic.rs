@@ -22,9 +22,9 @@ fn main() {
     let sd = MojoSlice::new(&f64s);
     let si = MojoSlice::new(&i32s);
 
-    let sf32 = unsafe { sum_f32(sf.as_raw(), sf.len() as isize) };
-    let sf64 = unsafe { sum_f64(sd.as_raw(), sd.len() as isize) };
-    let si32 = unsafe { sum_i32(si.as_raw(), si.len() as isize) };
+    let sf32 = unsafe { sum_f32(sf.as_raw(), sf.len_isize()) };
+    let sf64 = unsafe { sum_f64(sd.as_raw(), sd.len_isize()) };
+    let si32 = unsafe { sum_i32(si.as_raw(), si.len_isize()) };
 
     assert_eq!(sf32, 6.0);
     assert_eq!(sf64, 6.0);

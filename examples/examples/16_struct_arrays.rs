@@ -31,7 +31,7 @@ fn main() {
         Point::new(1.0, 0.0), // closest to (0,0): distance = 1.0
     ];
     let s = MojoSlice::new(&points);
-    let dist = unsafe { closest_pair_distance(s.as_raw(), s.len() as isize) };
+    let dist = unsafe { closest_pair_distance(s.as_raw(), s.len_isize()) };
     assert!((dist - 1.0).abs() < 1e-6);
     println!("  closest_pair_distance = {dist:.6} [ok]");
 
@@ -59,7 +59,7 @@ fn main() {
     let y0 = particles[0].y;
 
     let mut ms = MojoSliceMut::new(&mut particles);
-    unsafe { step_particles(ms.as_raw(), ms.len() as isize, dt) };
+    unsafe { step_particles(ms.as_raw(), ms.len_isize(), dt) };
 
     // Verify: position += velocity * dt
     assert!((particles[0].x - (x0 + 1.0 * dt)).abs() < 1e-10);

@@ -34,7 +34,7 @@ impl Stats {
     fn update(&mut self, data: &[f64]) {
         let s = MojoSlice::new(data);
         unsafe {
-            stats_update(self.as_raw_mut(), s.as_raw(), s.len() as isize);
+            stats_update(self.as_raw_mut(), s.as_raw(), s.len_isize());
         };
     }
 
