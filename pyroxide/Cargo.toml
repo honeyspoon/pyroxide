@@ -20,6 +20,9 @@ max = ["dep:max-sys"]
 zerocopy = { version = "0.8", features = ["derive"] }
 max-sys = { version = "0.1.0", path = "../max-sys", optional = true }
 
+[package.metadata.docs.rs]
+all-features = true
+
 [package.metadata.cargo-machete]
 ignored = ["max-sys"]  # optional dep, only used with features = ["max"]
 
