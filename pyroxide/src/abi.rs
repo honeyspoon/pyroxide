@@ -73,53 +73,56 @@
 //! assert_eq!((q, r), (3i64, 2i64));
 //! ```
 
-/// Helper for Mojo functions that write results via out-pointers.
+/// Zero-cost helper for Mojo functions that write results via out-pointers.
 ///
-/// Instead of manually creating variables and casting pointers:
+/// Uses `MaybeUninit` internally — no wasted default initialization.
+/// The closure and pointer casts are all `#[inline]`, so this compiles
+/// to the same code as manual pointer juggling.
+///
 /// ```rust,ignore
+/// // Before: 4 lines of boilerplate
 /// let mut q: i64 = 0;
 /// let mut r: i64 = 0;
 /// unsafe { divmod(17, 5, &mut q as *mut i64 as isize, &mut r as *mut i64 as isize) };
-/// ```
 ///
-/// Use `OutParam`:
-/// ```rust,ignore
-/// let (q, r) = OutParam::call2(|q, r| unsafe { divmod(17, 5, q, r) });
+/// // After: 1 line, zero overhead
+/// let (q, r): (i64, i64) = OutParam::call2(|q, r| unsafe { divmod(17, 5, q, r) });
 /// ```
 pub struct OutParam;
 
 impl OutParam {
     /// Call a Mojo function that writes one result via out-pointer.
-    pub fn call1<T: Default>(f: impl FnOnce(isize)) -> T {
-        let mut val = T::default();
-        f(std::ptr::addr_of_mut!(val) as isize);
-        val
+    #[inline]
+    pub fn call1<T>(f: impl FnOnce(isize)) -> T {
+        let mut val = std::mem::MaybeUninit::<T>::uninit();
+        f(val.as_mut_ptr() as isize);
+        // SAFETY: Mojo wrote to the pointer in f()
+        unsafe { val.assume_init() }
     }
 
     /// Call a Mojo function that writes two results via out-pointers.
-    pub fn call2<A: Default, B: Default>(f: impl FnOnce(isize, isize)) -> (A, B) {
-        let mut a = A::default();
-        let mut b = B::default();
-        f(
-            std::ptr::addr_of_mut!(a) as isize,
-            std::ptr::addr_of_mut!(b) as isize,
-        );
-        (a, b)
+    #[inline]
+    pub fn call2<A, B>(f: impl FnOnce(isize, isize)) -> (A, B) {
+        let mut a = std::mem::MaybeUninit::<A>::uninit();
+        let mut b = std::mem::MaybeUninit::<B>::uninit();
+        f(a.as_mut_ptr() as isize, b.as_mut_ptr() as isize);
+        // SAFETY: Mojo wrote to both pointers in f()
+        unsafe { (a.assume_init(), b.assume_init()) }
     }
 
     /// Call a Mojo function that writes three results via out-pointers.
-    pub fn call3<A: Default, B: Default, C: Default>(
-        f: impl FnOnce(isize, isize, isize),
-    ) -> (A, B, C) {
-        let mut a = A::default();
-        let mut b = B::default();
-        let mut c = C::default();
+    #[inline]
+    pub fn call3<A, B, C>(f: impl FnOnce(isize, isize, isize)) -> (A, B, C) {
+        let mut a = std::mem::MaybeUninit::<A>::uninit();
+        let mut b = std::mem::MaybeUninit::<B>::uninit();
+        let mut c = std::mem::MaybeUninit::<C>::uninit();
         f(
-            std::ptr::addr_of_mut!(a) as isize,
-            std::ptr::addr_of_mut!(b) as isize,
-            std::ptr::addr_of_mut!(c) as isize,
+            a.as_mut_ptr() as isize,
+            b.as_mut_ptr() as isize,
+            c.as_mut_ptr() as isize,
         );
-        (a, b, c)
+        // SAFETY: Mojo wrote to all three pointers in f()
+        unsafe { (a.assume_init(), b.assume_init(), c.assume_init()) }
     }
 }
 
