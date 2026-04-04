@@ -69,17 +69,17 @@ fn main() {
     let s = MojoSlice::new(&data);
 
     // First element above 0.8
-    let idx = unsafe { find_threshold(s.as_raw(), s.len() as isize, 0.8, true) };
+    let idx = unsafe { find_threshold(s.as_raw(), s.len_isize(), 0.8, true) };
     assert_eq!(idx, 2); // data[2] = 0.9 > 0.8
     println!("  find_threshold(>0.8) = {idx} [ok]");
 
     // First element below 0.2
-    let idx2 = unsafe { find_threshold(s.as_raw(), s.len() as isize, 0.2, false) };
+    let idx2 = unsafe { find_threshold(s.as_raw(), s.len_isize(), 0.2, false) };
     assert_eq!(idx2, 0); // data[0] = 0.1 < 0.2
     println!("  find_threshold(<0.2) = {idx2} [ok]");
 
     // Not found → -1
-    let idx3 = unsafe { find_threshold(s.as_raw(), s.len() as isize, 2.0, true) };
+    let idx3 = unsafe { find_threshold(s.as_raw(), s.len_isize(), 2.0, true) };
     assert_eq!(idx3, -1);
     println!("  find_threshold(>2.0) = {idx3} (not found) [ok]");
 

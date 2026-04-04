@@ -168,6 +168,12 @@ impl<'a, T: IntoBytes + Immutable> MojoSlice<'a, T> {
         self.len
     }
 
+    /// Length as `isize` for Mojo's `Int` parameter.
+    #[inline]
+    pub fn len_isize(&self) -> isize {
+        self.len as isize
+    }
+
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.len == 0
@@ -208,6 +214,12 @@ impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
     #[inline]
     pub fn len(&self) -> usize {
         self.len
+    }
+
+    /// Length as `isize` for Mojo's `Int` parameter.
+    #[inline]
+    pub fn len_isize(&self) -> isize {
+        self.len as isize
     }
 
     #[inline]
