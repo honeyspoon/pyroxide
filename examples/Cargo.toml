@@ -50,6 +50,14 @@ name = "15_nested_structs"
 name = "16_struct_arrays"
 [[example]]
 name = "17_mixed_args"
+[[example]]
+name = "18_padding"
+[[example]]
+name = "19_bytes"
+[[example]]
+name = "20_call_overhead"
+[[example]]
+name = "21_edge_cases"
 
 # Examples: same base as workspace but relaxed for teaching code
 [lints.clippy]
