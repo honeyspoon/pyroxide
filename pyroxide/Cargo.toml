@@ -1,5 +1,5 @@
 [package]
-name = "embers"
+name = "pyroxide"
 description = "Zero-copy FFI bridge between Rust and Mojo"
 version.workspace = true
 edition.workspace = true
@@ -7,7 +7,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-documentation = "https://docs.rs/embers"
+documentation = "https://docs.rs/pyroxide"
 keywords = ["mojo", "ffi", "interop", "zero-copy", "modular"]
 categories = ["api-bindings", "development-tools::ffi"]
 readme = "../README.md"

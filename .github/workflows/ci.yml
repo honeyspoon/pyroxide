@@ -17,8 +17,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - run: cargo check --workspace --features embers/max
-      - run: cargo clippy --workspace --features embers/max -- -D warnings
+      - run: cargo check --workspace --features pyroxide/max
+      - run: cargo clippy --workspace --features pyroxide/max -- -D warnings
 
   test:
     name: Test (library)
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --workspace --features embers/max
+      - run: cargo test --workspace --features pyroxide/max
 
   fmt:
     name: Format

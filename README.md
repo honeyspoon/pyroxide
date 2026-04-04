@@ -1,6 +1,6 @@
-# embers
+# pyroxide
 
-[![CI](https://github.com/honeyspoon/embers/actions/workflows/ci.yml/badge.svg)](https://github.com/honeyspoon/embers/actions/workflows/ci.yml)
+[![CI](https://github.com/honeyspoon/pyroxide/actions/workflows/ci.yml/badge.svg)](https://github.com/honeyspoon/pyroxide/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://www.rust-lang.org)
 
@@ -9,7 +9,7 @@
 Zero-copy FFI bridge between Rust and [Mojo](https://docs.modular.com/mojo/) — the glowing bridge between oxidation and fire.
 
 ```rust
-use embers::prelude::*;
+use pyroxide::prelude::*;
 
 mojo_type! {
     pub struct Vec3 { pub x: f64, pub y: f64, pub z: f64 }
@@ -25,11 +25,11 @@ let len = unsafe { vec3_length(v.as_mojo().addr()) };
 
 ## Overview
 
-Embers lets Rust and Mojo share data with zero copies. Define types once in Rust, pass pointers to Mojo, get results back — no serialization, no allocation.
+Pyroxide lets Rust and Mojo share data with zero copies. Define types once in Rust, pass pointers to Mojo, get results back — no serialization, no allocation.
 
 | Crate | Purpose |
 |-------|---------|
-| [`embers`](embers/) | Core bridge: types, traits, handles, error handling |
+| [`pyroxide`](pyroxide/) | Core bridge: types, traits, handles, error handling |
 | [`max-sys`](max-sys/) | Raw bindgen bindings to the [Modular MAX](https://docs.modular.com/max/) C API |
 
 > **Why no `mojo-sys`?** Mojo has no C SDK. You call Mojo via `@export` → shared library → `extern "C"`. `max-sys` is for the MAX inference engine, which does have a C API.
@@ -49,10 +49,10 @@ Embers lets Rust and Mojo share data with zero copies. Define types once in Rust
 ## Quick start
 
 ```sh
-git clone https://github.com/honeyspoon/embers
-cd embers
-cargo run -p embers-examples --example 01_hello     # simplest possible call
-cargo run -p embers-examples --example 07_embeddings # real HuggingFace model
+git clone https://github.com/honeyspoon/pyroxide
+cd pyroxide
+cargo run -p pyroxide-examples --example 01_hello     # simplest possible call
+cargo run -p pyroxide-examples --example 07_embeddings # real HuggingFace model
 make test                                             # run all 7 examples
 ```
 
@@ -77,7 +77,7 @@ Progressive tutorial — each builds on the previous.
 ### Rust side
 
 ```rust
-use embers::prelude::*;
+use pyroxide::prelude::*;
 
 mojo_type! {
     pub struct Particle {
@@ -152,7 +152,7 @@ Early stage. API will change.
 ## Project layout
 
 ```
-embers/           Core library
+pyroxide/           Core library
 max-sys/          Bindgen from MAX C headers (8 headers, 131 bindings)
 examples/
   mojo/           Mojo source files (auto-compiled by build.rs)

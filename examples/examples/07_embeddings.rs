@@ -21,8 +21,8 @@
 // pipeline is identical to production: same weights, same ops, same
 // data flow through Mojo.
 
-use embers::bridge::IntoMojo;
-use embers::types::max::{DType, Tensor, TensorDescriptor, TensorShape};
+use pyroxide::bridge::IntoMojo;
+use pyroxide::types::max::{DType, Tensor, TensorDescriptor, TensorShape};
 
 use hf_hub::api::sync::Api;
 use safetensors::SafeTensors;

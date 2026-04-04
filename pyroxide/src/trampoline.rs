@@ -10,7 +10,7 @@
 //! # Example
 //!
 //! ```rust,ignore
-//! use embers::trampoline::catch_mojo_call;
+//! use pyroxide::trampoline::catch_mojo_call;
 //!
 //! #[unsafe(no_mangle)]
 //! extern "C" fn my_function(addr: isize) -> f64 {
@@ -42,7 +42,7 @@ pub fn catch_mojo_call<T: Default>(f: impl FnOnce() -> T) -> T {
         Ok(val) => val,
         Err(payload) => {
             eprintln!(
-                "[embers] panic at FFI boundary: {}",
+                "[pyroxide] panic at FFI boundary: {}",
                 panic_message(&payload)
             );
             T::default()
@@ -57,7 +57,7 @@ pub fn catch_mojo_result<T>(f: impl FnOnce() -> T) -> MojoResult<T> {
         Ok(val) => MojoResult::ok(val),
         Err(payload) => {
             eprintln!(
-                "[embers] panic at FFI boundary: {}",
+                "[pyroxide] panic at FFI boundary: {}",
                 panic_message(&payload)
             );
             MojoResult::err(MojoError::Panic)

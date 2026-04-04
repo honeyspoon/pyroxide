@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────
 //
 // Tensors need metadata: shape, strides, data pointer, dtype.
-// Embers provides `TensorDescriptor` — a 152-byte repr(C)
+// Pyroxide provides `TensorDescriptor` — a 152-byte repr(C)
 // struct that Mojo reads to find and iterate the data.
 //
 // The workflow:
@@ -14,8 +14,8 @@
 //
 // The data never copies — Mojo reads directly from Rust's heap.
 
-use embers::bridge::IntoMojo;
-use embers::types::max::{Tensor, TensorShape};
+use pyroxide::bridge::IntoMojo;
+use pyroxide::types::max::{Tensor, TensorShape};
 
 unsafe extern "C" {
     fn tensor_sum_f64(desc: isize) -> f64;

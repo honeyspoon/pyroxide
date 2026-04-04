@@ -1,6 +1,6 @@
 [package]
-name = "embers-examples"
-description = "Guided examples for the embers Rust-Mojo bridge"
+name = "pyroxide-examples"
+description = "Guided examples for the pyroxide Rust-Mojo bridge"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,7 +8,7 @@ build = "build.rs"
 publish = false
 
 [dependencies]
-embers = { path = "../embers", features = ["max"] }
+pyroxide = { path = "../pyroxide", features = ["max"] }
 zerocopy = { version = "0.8", features = ["derive"] }
 hf-hub = "0.4"
 safetensors = "0.5"

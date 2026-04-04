@@ -1,14 +1,14 @@
-//! # embers
+//! # pyroxide
 //!
 //! Zero-copy FFI bridge between Rust and Mojo — the glowing bridge
 //! between oxidation and fire.
 //!
 //! ## Architecture
 //!
-//! Embers follows the same layered design as [PyO3](https://pyo3.rs),
+//! Pyroxide follows the same layered design as [PyO3](https://pyo3.rs),
 //! adapted for Mojo's value-oriented memory model:
 //!
-//! | Layer | PyO3 equivalent | Embers |
+//! | Layer | PyO3 equivalent | Pyroxide |
 //! |-------|-----------------|--------|
 //! | Type declaration | `#[pyclass]` | [`mojo_type!`] |
 //! | Rust → Mojo | `IntoPyObject` | [`IntoMojo`](bridge::IntoMojo) |
@@ -19,7 +19,7 @@
 //!
 //! ## Safety model
 //!
-//! Embers wraps the raw `unsafe` FFI boundary in typed, lifetime-bound
+//! Pyroxide wraps the raw `unsafe` FFI boundary in typed, lifetime-bound
 //! handles. The safety guarantees:
 //!
 //! - **No dangling pointers**: [`MojoRef`](bridge::MojoRef) ties the pointer's
@@ -34,7 +34,7 @@
 //! ## Quick start
 //!
 //! ```rust,ignore
-//! use embers::prelude::*;
+//! use pyroxide::prelude::*;
 //!
 //! mojo_type! {
 //!     pub struct Vec3 { pub x: f64, pub y: f64, pub z: f64 }
@@ -80,7 +80,7 @@ pub mod prelude {
 /// # Example
 ///
 /// ```rust,ignore
-/// use embers::prelude::*;
+/// use pyroxide::prelude::*;
 ///
 /// mojo_type! {
 ///     /// A particle in 2D space.

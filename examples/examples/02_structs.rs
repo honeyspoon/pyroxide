@@ -13,7 +13,7 @@
 // For mutation, use `.as_mojo_mut().addr()` instead. Mojo writes
 // directly into Rust's memory — zero copies either way.
 
-use embers::prelude::*;
+use pyroxide::prelude::*;
 
 // Define a custom type. `mojo_type!` adds #[repr(C)] and all
 // zerocopy derives, so the struct automatically implements
