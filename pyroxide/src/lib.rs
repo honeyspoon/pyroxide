@@ -45,7 +45,7 @@
 //! }
 //!
 //! let v = Vec3 { x: 3.0, y: 4.0, z: 0.0 };
-//! let len = unsafe { vec3_length(v.as_mojo().addr().as_raw()) };
+//! let len = unsafe { vec3_length(v.as_raw()) };
 //! ```
 //!
 //! ## Feature flags
@@ -69,7 +69,7 @@ pub mod prelude {
     };
     pub use crate::mojo_type;
     pub use crate::string::MojoStr;
-    pub use crate::trampoline::{MojoError, MojoResult, catch_mojo_call};
+    pub use crate::trampoline::catch_mojo_call;
     #[cfg(feature = "max")]
     pub use crate::types::max;
     pub use crate::types::primitives::*;

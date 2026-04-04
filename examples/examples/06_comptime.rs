@@ -19,7 +19,7 @@ fn main() {
     let b = [5.0f64, 6.0, 7.0, 8.0];
     let sa = MojoSlice::new(&a);
     let sb = MojoSlice::new(&b);
-    let dot = unsafe { dot_unrolled_4(sa.addr().as_raw(), sb.addr().as_raw()) };
+    let dot = unsafe { dot_unrolled_4(sa.as_raw(), sb.as_raw()) };
     assert_eq!(dot, 70.0);
     println!("  dot_unrolled_4 = {dot} [ok]");
 

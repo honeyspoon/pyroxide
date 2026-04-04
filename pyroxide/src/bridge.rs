@@ -13,23 +13,28 @@
 //! # Thread safety
 //!
 //! All handle types are `!Send` and `!Sync`. They represent borrowed
-//! pointers valid only for one FFI call on the calling thread. Do not
-//! attempt to share them across threads.
+//! pointers valid only for one FFI call on the calling thread.
 
 use std::marker::PhantomData;
 use std::ptr::NonNull;
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
+// ── Helper ──
+
+#[inline]
+fn addr_of<T>(ptr: NonNull<T>) -> MojoAddr {
+    MojoAddr(ptr.as_ptr() as isize)
+}
+
 // ── MojoAddr ──
 
 /// A typed wrapper around a raw memory address for Mojo FFI.
 ///
-/// Prevents accidentally passing a length, index, or other `isize`
-/// where an address was expected. Zero-cost: `#[repr(transparent)]`
-/// over `isize`.
+/// Zero-cost `#[repr(transparent)]` newtype over `isize`.
+/// Use `.as_raw()` to extract the `isize` for FFI calls.
 ///
-/// Analogous to `ash::vk::Buffer` (Vulkan handle newtype) or
-/// `windows::Win32::Foundation::HANDLE`.
+/// Most users don't need `MojoAddr` directly — use the `.as_raw()`
+/// shortcut on [`IntoMojo`] or [`FromMojo`] instead.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct MojoAddr(isize);
@@ -39,14 +44,13 @@ impl MojoAddr {
     ///
     /// # Safety
     ///
-    /// The address must point to a valid, live object of the expected
-    /// type for the duration of the FFI call.
+    /// The address must point to a valid, live object for the FFI call duration.
     #[inline]
     pub const unsafe fn from_raw(addr: isize) -> Self {
         Self(addr)
     }
 
-    /// The raw `isize` value to pass to Mojo's `Int` parameter.
+    /// The raw `isize` value for Mojo's `Int` parameter.
     #[inline]
     pub const fn as_raw(self) -> isize {
         self.0
@@ -55,12 +59,6 @@ impl MojoAddr {
     /// Create from any raw pointer.
     #[inline]
     pub fn from_ptr<T>(ptr: *const T) -> Self {
-        Self(ptr as isize)
-    }
-
-    /// Create from any mutable raw pointer.
-    #[inline]
-    pub fn from_mut_ptr<T>(ptr: *mut T) -> Self {
         Self(ptr as isize)
     }
 }
@@ -77,7 +75,19 @@ impl From<MojoAddr> for isize {
 /// A type that can be passed to Mojo by pointer. Zero-copy.
 ///
 /// Automatically implemented for all [`mojo_type!`](crate::mojo_type) structs.
+/// Provides two ways to get the address:
+/// - `.as_raw()` → `isize` (most common, one call)
+/// - `.as_mojo().addr()` → [`MojoAddr`] (typed, for when you need the handle)
 pub trait IntoMojo: IntoBytes + Immutable + KnownLayout {
+    /// Get the raw address as `isize` — the one-call shortcut for FFI.
+    fn as_raw(&self) -> isize
+    where
+        Self: Sized,
+    {
+        std::ptr::from_ref(self) as isize
+    }
+
+    /// Get an immutable handle for passing to Mojo.
     fn as_mojo(&self) -> MojoRef<'_, Self>
     where
         Self: Sized,
@@ -90,6 +100,15 @@ pub trait IntoMojo: IntoBytes + Immutable + KnownLayout {
 ///
 /// Automatically implemented for all [`mojo_type!`](crate::mojo_type) structs.
 pub trait FromMojo: FromBytes + IntoBytes + Immutable + KnownLayout {
+    /// Get the raw mutable address as `isize` — the one-call shortcut for FFI.
+    fn as_raw_mut(&mut self) -> isize
+    where
+        Self: Sized,
+    {
+        std::ptr::from_mut(self) as isize
+    }
+
+    /// Get a mutable handle for Mojo to write into.
     fn as_mojo_mut(&mut self) -> MojoMut<'_, Self>
     where
         Self: Sized,
@@ -97,6 +116,7 @@ pub trait FromMojo: FromBytes + IntoBytes + Immutable + KnownLayout {
         MojoMut::new(self)
     }
 
+    /// Reinterpret a byte buffer as this type. Zero-copy.
     fn from_mojo_bytes(bytes: &[u8]) -> Option<&Self>
     where
         Self: Sized,
@@ -112,11 +132,7 @@ impl<T: FromBytes + IntoBytes + Immutable + KnownLayout> FromMojo for T {}
 
 /// Immutable, zero-copy reference for passing Rust data to Mojo.
 ///
-/// The lifetime `'a` ties the pointer to the Rust borrow, preventing
-/// use-after-free. Returns [`MojoAddr`] from `.addr()` — a typed
-/// wrapper that prevents mixing up addresses with other `isize` values.
-///
-/// `MojoRef` is `!Send` and `!Sync` — it must not leave the calling thread.
+/// `MojoRef` is `!Send` and `!Sync`.
 pub struct MojoRef<'a, T: IntoBytes + Immutable> {
     ptr: NonNull<T>,
     _marker: PhantomData<&'a T>,
@@ -131,13 +147,18 @@ impl<'a, T: IntoBytes + Immutable> MojoRef<'a, T> {
         }
     }
 
-    /// The address to pass to Mojo's `Int` parameter.
+    /// Typed address handle.
     #[inline]
     pub fn addr(&self) -> MojoAddr {
-        MojoAddr(self.ptr.as_ptr() as isize)
+        addr_of(self.ptr)
     }
 
-    /// The underlying typed pointer.
+    /// Raw address as `isize` — shortcut for `self.addr().as_raw()`.
+    #[inline]
+    pub fn as_raw(&self) -> isize {
+        self.ptr.as_ptr() as isize
+    }
+
     #[inline]
     pub fn as_ptr(&self) -> *const T {
         self.ptr.as_ptr()
@@ -147,8 +168,6 @@ impl<'a, T: IntoBytes + Immutable> MojoRef<'a, T> {
 // ── MojoMut ──
 
 /// Mutable, zero-copy reference. Mojo can read and write through this pointer.
-///
-/// Same lifetime guarantees as [`MojoRef`], but allows mutation.
 ///
 /// `MojoMut` is `!Send` and `!Sync`.
 pub struct MojoMut<'a, T: IntoBytes + FromBytes> {
@@ -165,10 +184,15 @@ impl<'a, T: IntoBytes + FromBytes> MojoMut<'a, T> {
         }
     }
 
-    /// The address to pass to Mojo's `Int` parameter.
     #[inline]
     pub fn addr(&self) -> MojoAddr {
-        MojoAddr(self.ptr.as_ptr() as isize)
+        addr_of(self.ptr)
+    }
+
+    /// Raw address as `isize` — shortcut for `self.addr().as_raw()`.
+    #[inline]
+    pub fn as_raw(&self) -> isize {
+        self.ptr.as_ptr() as isize
     }
 
     #[inline]
@@ -179,7 +203,7 @@ impl<'a, T: IntoBytes + FromBytes> MojoMut<'a, T> {
 
 // ── MojoSlice ──
 
-/// Zero-copy handle to a contiguous slice of values.
+/// Zero-copy handle to a contiguous immutable slice.
 ///
 /// `MojoSlice` is `!Send` and `!Sync`.
 pub struct MojoSlice<'a, T: IntoBytes + Immutable> {
@@ -198,10 +222,15 @@ impl<'a, T: IntoBytes + Immutable> MojoSlice<'a, T> {
         }
     }
 
-    /// The address of the first element.
     #[inline]
     pub fn addr(&self) -> MojoAddr {
-        MojoAddr(self.ptr.as_ptr() as isize)
+        addr_of(self.ptr)
+    }
+
+    /// Raw address as `isize`.
+    #[inline]
+    pub fn as_raw(&self) -> isize {
+        self.ptr.as_ptr() as isize
     }
 
     #[inline]
@@ -224,8 +253,6 @@ impl<'a, T: IntoBytes + Immutable> MojoSlice<'a, T> {
 
 /// Mutable zero-copy handle to a contiguous slice.
 ///
-/// Use this when Mojo needs to write into a Rust-owned buffer.
-///
 /// `MojoSliceMut` is `!Send` and `!Sync`.
 pub struct MojoSliceMut<'a, T: IntoBytes + FromBytes> {
     ptr: NonNull<T>,
@@ -243,10 +270,15 @@ impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
         }
     }
 
-    /// The address of the first element.
     #[inline]
     pub fn addr(&self) -> MojoAddr {
-        MojoAddr(self.ptr.as_ptr() as isize)
+        addr_of(self.ptr)
+    }
+
+    /// Raw address as `isize`.
+    #[inline]
+    pub fn as_raw(&self) -> isize {
+        self.ptr.as_ptr() as isize
     }
 
     #[inline]
@@ -257,5 +289,10 @@ impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.len == 0
+    }
+
+    #[inline]
+    pub fn size_bytes(&self) -> usize {
+        self.len * std::mem::size_of::<T>()
     }
 }

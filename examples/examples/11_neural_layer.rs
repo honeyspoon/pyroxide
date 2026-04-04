@@ -43,12 +43,7 @@ fn main() {
     let bd = bias.descriptor();
     let hd = hidden.descriptor();
     unsafe {
-        linear_relu_f32(
-            id.as_mojo().addr().as_raw(),
-            wd.as_mojo().addr().as_raw(),
-            bd.as_mojo().addr().as_raw(),
-            hd.as_mojo().addr().as_raw(),
-        );
+        linear_relu_f32(id.as_raw(), wd.as_raw(), bd.as_raw(), hd.as_raw());
     }
 
     // Verify against Rust ground truth
@@ -75,7 +70,7 @@ fn main() {
     let probs = Tensor::<f32>::zeros(TensorShape::matrix(2, 4));
     let hd2 = hidden.descriptor();
     let pd = probs.descriptor();
-    unsafe { softmax_f32(hd2.as_mojo().addr().as_raw(), pd.as_mojo().addr().as_raw()) };
+    unsafe { softmax_f32(hd2.as_raw(), pd.as_raw()) };
 
     // Verify: each row sums to 1.0
     for row in 0..2 {

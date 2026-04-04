@@ -23,7 +23,7 @@ unsafe extern "C" {
 
 fn mojo_count_tokens(text: &str) -> usize {
     let s = MojoStr::new(text);
-    unsafe { count_tokens(s.addr().as_raw(), s.len_isize()) as usize }
+    unsafe { count_tokens(s.as_raw(), s.len_isize()) as usize }
 }
 
 fn mojo_tokenize(text: &str) -> Vec<String> {
@@ -34,10 +34,10 @@ fn mojo_tokenize(text: &str) -> Vec<String> {
 
     let n = unsafe {
         tokenize_whitespace(
-            s.addr().as_raw(),
+            s.as_raw(),
             s.len_isize(),
-            MojoSlice::new(&starts).addr().as_raw(),
-            MojoSlice::new(&lens).addr().as_raw(),
+            MojoSlice::new(&starts).as_raw(),
+            MojoSlice::new(&lens).as_raw(),
             max_tokens as isize,
         ) as usize
     };
@@ -56,8 +56,8 @@ fn mojo_uppercase(text: &str) -> String {
     let mut dst = vec![0u8; text.len()];
     unsafe {
         to_uppercase(
-            s.addr().as_raw(),
-            pyroxide::bridge::MojoAddr::from_mut_ptr(dst.as_mut_ptr()).as_raw(),
+            s.as_raw(),
+            pyroxide::bridge::MojoAddr::from_ptr(dst.as_mut_ptr()).as_raw(),
             s.len_isize(),
         );
     }

@@ -20,7 +20,7 @@ unsafe extern "C" {
 fn mojo_dot(f: unsafe extern "C" fn(isize, isize, isize) -> f32, a: &[f32], b: &[f32]) -> f32 {
     let sa = MojoSlice::new(a);
     let sb = MojoSlice::new(b);
-    unsafe { f(sa.addr().as_raw(), sb.addr().as_raw(), sa.len() as isize) }
+    unsafe { f(sa.as_raw(), sb.as_raw(), sa.len() as isize) }
 }
 
 fn main() {

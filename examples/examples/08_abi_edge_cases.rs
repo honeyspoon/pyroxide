@@ -64,11 +64,11 @@ fn main() {
     println!("  Float64 (0, -0, NaN, ±Inf, MIN, MAX): ok");
 
     // ── Out-pointers via OutParam ──
-    let (q, r): (i64, i64) = OutParam::call2(|qp, rp| unsafe { divmod_out(17, 5, qp, rp) });
+    let (q, r): (i64, i64) = unsafe { OutParam::call2(|qp, rp| divmod_out(17, 5, qp, rp)) };
     assert_eq!((q, r), (3, 2));
     println!("  OutParam::call2 divmod(17, 5) = ({q}, {r}): ok");
 
-    let (q2, r2): (i64, i64) = OutParam::call2(|qp, rp| unsafe { divmod_out(-7, 3, qp, rp) });
+    let (q2, r2): (i64, i64) = unsafe { OutParam::call2(|qp, rp| divmod_out(-7, 3, qp, rp)) };
     assert_eq!(q2, -3); // Mojo // is floor division
     println!("  OutParam divmod(-7, 3) = ({q2}, {r2}): ok");
 
@@ -76,10 +76,7 @@ fn main() {
     let mut a = 1.0f64;
     let mut b = 2.0f64;
     unsafe {
-        swap_f64(
-            a.as_mojo_mut().addr().as_raw(),
-            b.as_mojo_mut().addr().as_raw(),
-        );
+        swap_f64(a.as_raw_mut(), b.as_raw_mut());
     };
     assert_eq!((a, b), (2.0, 1.0));
     println!("  swap(1.0, 2.0) → ({a}, {b}): ok");

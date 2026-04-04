@@ -28,10 +28,16 @@ impl<'a> MojoStr<'a> {
         }
     }
 
-    /// Address of the string data — pass to Mojo's `Int` parameter.
+    /// Address of the string data — typed handle.
     #[inline]
     pub fn addr(&self) -> MojoAddr {
         MojoAddr::from_ptr(self.ptr)
+    }
+
+    /// Raw address as `isize` — shortcut for `self.addr().as_raw()`.
+    #[inline]
+    pub fn as_raw(&self) -> isize {
+        self.ptr as isize
     }
 
     pub fn ptr(&self) -> *const u8 {
