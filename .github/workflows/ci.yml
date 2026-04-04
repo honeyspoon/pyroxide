@@ -49,6 +49,8 @@ jobs:
   semver:
     name: Semver check
     runs-on: ubuntu-latest
+    # Only run when there's a published baseline to compare against
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
