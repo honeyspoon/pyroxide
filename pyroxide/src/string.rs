@@ -1,16 +1,13 @@
 //! FFI-safe string type for passing text between Rust and Mojo.
 //!
-//! Mojo's `String` is not `#[repr(C)]`, so we use [`MojoStr`] — a
-//! `(ptr, len)` pair. Rust owns the string data; Mojo borrows it
-//! for the duration of the FFI call.
+//! Mojo's `String` is not `#[repr(C)]`, so we pass `(ptr, len)` as
+//! two separate `Int` parameters. [`MojoStr`] wraps a `&str` and
+//! provides `.as_raw()` for the pointer and `.len_isize()` for the length.
 
-use crate::bridge::MojoAddr;
 use std::marker::PhantomData;
 
-/// A borrowed UTF-8 string slice for FFI. Layout: `(ptr, len)`.
-///
-/// Mojo receives the two fields and reads `ptr[0..len]`.
-/// The data is valid only for the duration of the FFI call.
+/// A borrowed UTF-8 string for FFI. Pass `.as_raw()` and `.len_isize()`
+/// as two separate `Int` parameters to Mojo.
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct MojoStr<'a> {
@@ -28,13 +25,7 @@ impl<'a> MojoStr<'a> {
         }
     }
 
-    /// Address of the string data — typed handle.
-    #[inline]
-    pub fn addr(&self) -> MojoAddr {
-        MojoAddr::from_ptr(self.ptr)
-    }
-
-    /// Raw address as `isize` — shortcut for `self.addr().as_raw()`.
+    /// Pointer address as `isize` for Mojo's `Int` parameter.
     #[inline]
     pub fn as_raw(&self) -> isize {
         self.ptr as isize
@@ -48,23 +39,24 @@ impl<'a> MojoStr<'a> {
         self.len
     }
 
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
 
-    /// Length as `isize` — for passing to Mojo's `Int` parameter.
+    /// Length as `isize` for Mojo's `Int` parameter.
     #[inline]
     pub fn len_isize(&self) -> isize {
         self.len as isize
     }
 
-    /// Reconstruct a `&str` from a Mojo-returned `(ptr, len)`.
+    /// Reconstruct a `&str` from Mojo-returned `(ptr, len)`.
     ///
     /// # Safety
     ///
     /// The pointer must point to valid UTF-8 data of at least `len` bytes.
     pub unsafe fn as_str(&self) -> &'a str {
-        // SAFETY: caller guarantees ptr is valid UTF-8 for len bytes (see doc above)
+        // SAFETY: caller guarantees ptr is valid UTF-8 for len bytes
         unsafe {
             let bytes = std::slice::from_raw_parts(self.ptr, self.len);
             std::str::from_utf8_unchecked(bytes)
