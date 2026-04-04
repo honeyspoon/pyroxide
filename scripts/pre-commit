@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Pre-commit hook for pyroxide.
+# Install: cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# Or: ./scripts/install-hooks.sh
+
+set -e
+
+echo "pre-commit: fmt"
+cargo fmt -p pyroxide -p max-sys -- --check
+
+echo "pre-commit: clippy"
+cargo clippy -p pyroxide --features max -p max-sys -- -D warnings
+
+echo "pre-commit: machete"
+cargo machete
+
+echo "pre-commit: all checks passed"

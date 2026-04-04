@@ -17,7 +17,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      # Only check library crates — examples need Mojo installed
       - run: cargo check -p pyroxide --features max -p max-sys
       - run: cargo clippy -p pyroxide --features max -p max-sys -- -D warnings
 
@@ -38,3 +37,23 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt -p pyroxide -p max-sys -- --check
+
+  machete:
+    name: Unused deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: bnjbvr/cargo-machete@main
+
+  semver:
+    name: Semver check
+    runs-on: ubuntu-latest
+    # Only run when there's a published baseline to compare against
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          package: pyroxide

@@ -9,9 +9,12 @@ publish = false
 
 [dependencies]
 pyroxide = { path = "../pyroxide", features = ["max"] }
-zerocopy = { version = "0.8", features = ["derive"] }
+zerocopy = { version = "0.8", features = ["derive"] }  # needed for mojo_type! macro
 hf-hub = "0.4"
 safetensors = "0.5"
+
+[package.metadata.cargo-machete]
+ignored = ["zerocopy"]  # needed at compile time for mojo_type! derive macros
 
 [[example]]
 name = "01_hello"
