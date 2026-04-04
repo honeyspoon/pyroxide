@@ -82,6 +82,10 @@ Progressive tutorial — each builds on the previous.
 | 15 | [`nested_structs`](examples/examples/15_nested_structs.rs) | Line (2 Points), Triangle (3 Points), centroid |
 | 16 | [`struct_arrays`](examples/examples/16_struct_arrays.rs) | `&[Point]`, particle simulation, kinetic energy |
 | 17 | [`mixed_args`](examples/examples/17_mixed_args.rs) | 6 args: pointers + scalars + bools in one call |
+| 18 | [`padding`](examples/examples/18_padding.rs) | `u8 + f64 + i32` struct with alignment padding |
+| 19 | [`bytes`](examples/examples/19_bytes.rs) | `u8`/`i64` arrays, XOR, prefix sum |
+| 20 | [`call_overhead`](examples/examples/20_call_overhead.rs) | Noop/identity benchmark, pointer stability |
+| 21 | [`edge_cases`](examples/examples/21_edge_cases.rs) | Zero-length, NaN in structs, byte roundtrip |
 
 ## How it works
 
