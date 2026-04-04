@@ -1,0 +1,17 @@
+[package]
+name = "embers"
+description = "Zero-copy FFI bridge between Rust and Mojo"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["mojo", "ffi", "interop", "zero-copy", "modular"]
+categories = ["api-bindings", "external-ffi-bindings"]
+
+[features]
+default = []
+max = ["dep:max-sys"]
+
+[dependencies]
+zerocopy = { version = "0.8", features = ["derive"] }
+max-sys = { path = "../max-sys", optional = true }

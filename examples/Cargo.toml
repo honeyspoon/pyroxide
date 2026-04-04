@@ -1,0 +1,29 @@
+[package]
+name = "embers-examples"
+description = "Guided examples for the embers Rust-Mojo bridge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+build = "build.rs"
+publish = false
+
+[dependencies]
+embers = { path = "../embers", features = ["max"] }
+zerocopy = { version = "0.8", features = ["derive"] }
+hf-hub = "0.4"
+safetensors = "0.5"
+
+[[example]]
+name = "01_hello"
+[[example]]
+name = "02_structs"
+[[example]]
+name = "03_tensors"
+[[example]]
+name = "04_simd"
+[[example]]
+name = "05_dtype_generic"
+[[example]]
+name = "06_comptime"
+[[example]]
+name = "07_embeddings"
