@@ -69,3 +69,46 @@ impl<'a> From<&'a str> for MojoStr<'a> {
         Self::new(s)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_from_str() {
+        let s = MojoStr::new("hello");
+        assert_eq!(s.len(), 5);
+        assert!(!s.is_empty());
+        assert_eq!(s.len_isize(), 5);
+        assert_ne!(s.as_raw(), 0);
+    }
+
+    #[test]
+    fn empty_str() {
+        let s = MojoStr::new("");
+        assert_eq!(s.len(), 0);
+        assert!(s.is_empty());
+    }
+
+    #[test]
+    fn from_trait() {
+        let s: MojoStr<'_> = "world".into();
+        assert_eq!(s.len(), 5);
+    }
+
+    #[test]
+    fn as_raw_points_to_data() {
+        let text = "test";
+        let s = MojoStr::new(text);
+        assert_eq!(s.as_raw(), text.as_ptr() as isize);
+        assert_eq!(s.ptr(), text.as_ptr());
+    }
+
+    #[test]
+    fn roundtrip_as_str() {
+        let text = "hello world";
+        let s = MojoStr::new(text);
+        let recovered = unsafe { s.as_str() };
+        assert_eq!(recovered, text);
+    }
+}
