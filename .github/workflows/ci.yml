@@ -38,6 +38,13 @@ jobs:
           components: rustfmt
       - run: cargo fmt -p pyroxide -p max-sys -- --check
 
+  docs:
+    name: Docs freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/check-docs.sh
+
   machete:
     name: Unused deps
     runs-on: ubuntu-latest

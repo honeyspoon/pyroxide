@@ -5,7 +5,7 @@
 // Pass a flat f32 pixel buffer (height × width × 3) to Mojo for
 // a 3×3 box blur. Tests large mutable buffers through the FFI.
 
-use pyroxide::bridge::MojoSlice;
+use pyroxide::bridge::{MojoSlice, MojoSliceMut};
 
 unsafe extern "C" {
     fn box_blur_rgb(src: isize, dst: isize, width: isize, height: isize);
@@ -22,18 +22,23 @@ fn main() {
         .flat_map(|i| {
             let x = i % width;
             let y = i / width;
-            let v = if (x + y).is_multiple_of(2) { 1.0f32 } else { 0.0 };
+            let v = if (x + y).is_multiple_of(2) {
+                1.0f32
+            } else {
+                0.0
+            };
             [v, v, v]
         })
         .collect();
     let mut dst = vec![0.0f32; n_pixels * 3];
 
-    // Blur via Mojo — src is read-only, dst is written
+    // Blur via Mojo — src is read-only (MojoSlice), dst is written (MojoSliceMut)
     let src_s = MojoSlice::new(&src);
+    let mut dst_s = MojoSliceMut::new(&mut dst);
     unsafe {
         box_blur_rgb(
             src_s.addr().as_raw(),
-            dst.as_mut_ptr() as isize,
+            dst_s.addr().as_raw(),
             width as isize,
             height as isize,
         );
