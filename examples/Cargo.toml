@@ -64,6 +64,10 @@ name = "22_large_data"
 name = "23_chained"
 [[example]]
 name = "24_matrix"
+[[example]]
+name = "25_catch_panic"
+[[example]]
+name = "26_pipeline"
 
 # Examples: same base as workspace but relaxed for teaching code
 [lints.clippy]

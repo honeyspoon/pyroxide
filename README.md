@@ -89,6 +89,8 @@ Progressive tutorial — each builds on the previous.
 | 22 | [`large_data`](examples/examples/22_large_data.rs) | 1M-element dot, scale-add, reduce-max |
 | 23 | [`chained`](examples/examples/23_chained.rs) | Normalize→argmax pipeline, NaN/-1 sentinels, histogram |
 | 24 | [`matrix`](examples/examples/24_matrix.rs) | Transpose, Hadamard product, trace |
+| 25 | [`catch_panic`](examples/examples/25_catch_panic.rs) | `catch_mojo_call`, string output, panic recovery |
+| 26 | [`pipeline`](examples/examples/26_pipeline.rs) | Enum-like dispatch, multi-step transforms |
 
 ## How it works
 
