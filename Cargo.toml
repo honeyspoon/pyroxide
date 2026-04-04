@@ -11,22 +11,28 @@ repository = "https://github.com/honeyspoon/pyroxide"
 authors = ["honeyspoon"]
 
 [workspace.lints.clippy]
-# Deny unwrap — use expect() with a reason, or proper error handling
-unwrap_used = "deny"
-# Every #[allow] must have a reason
-allow_attributes_without_reason = "deny"
-# Pedantic lints we want
+# Enable ALL pedantic lints. New ones added in future Rust versions
+# will automatically apply. We only disable specific ones below.
 pedantic = { level = "warn", priority = -1 }
-# ... but not these pedantic ones
-module_name_repetitions = "allow"
-must_use_candidate = "allow"
-missing_errors_doc = "allow"
-missing_panics_doc = "allow"
-cast_possible_truncation = "allow"
-cast_sign_loss = "allow"
-cast_precision_loss = "allow"
-cast_possible_wrap = "allow"
+
+# Hard denials
+unwrap_used = "deny"
+allow_attributes_without_reason = "deny"
+
+# Pedantic lints we opt out of (each with a reason)
+module_name_repetitions = { level = "allow", priority = 1 }  # MojoRef in bridge module is fine
+must_use_candidate = { level = "allow", priority = 1 }       # too noisy for FFI handle methods
+missing_errors_doc = { level = "allow", priority = 1 }       # errors are obvious from signatures
+missing_panics_doc = { level = "allow", priority = 1 }       # panics are documented where non-obvious
+cast_possible_truncation = { level = "allow", priority = 1 } # intentional in FFI pointer casts
+cast_sign_loss = { level = "allow", priority = 1 }           # intentional in isize ↔ usize
+cast_precision_loss = { level = "allow", priority = 1 }      # intentional in f64 ↔ usize conversions
+cast_possible_wrap = { level = "allow", priority = 1 }       # intentional in pointer ↔ isize
+float_cmp = { level = "allow", priority = 1 }                # exact float comparison is intentional in tests
+similar_names = { level = "allow", priority = 1 }             # ma/mb/mc, da/db, ns_scalar/ns_simd are clear in context
+too_many_lines = { level = "allow", priority = 1 }            # examples are intentionally verbose for teaching
+unreadable_literal = { level = "allow", priority = 1 }        # 100_000 vs 100000 — both fine
+cast_ptr_alignment = { level = "allow", priority = 1 }        # safetensors data is known-aligned
 
 [workspace.lints.rust]
-# Unsafe blocks must document their safety invariants
 unsafe_op_in_unsafe_fn = "deny"

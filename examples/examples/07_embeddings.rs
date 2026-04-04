@@ -46,7 +46,7 @@ fn embed(emb_desc: &TensorDescriptor, hidden_dim: usize, ids: &[i64]) -> Tensor<
     let ids_desc = desc(
         DType::Int64,
         &TensorShape::vector(seq_len as i64),
-        ids.as_ptr() as *const u8,
+        ids.as_ptr().cast::<u8>(),
     );
     let embeddings = Tensor::<f32>::zeros(TensorShape::matrix(seq_len as i64, hidden_dim as i64));
     let emb_out_desc = embeddings.descriptor();
@@ -55,7 +55,7 @@ fn embed(emb_desc: &TensorDescriptor, hidden_dim: usize, ids: &[i64]) -> Tensor<
             emb_desc.as_mojo().addr(),
             ids_desc.as_mojo().addr(),
             emb_out_desc.as_mojo().addr(),
-        )
+        );
     };
 
     let pooled = Tensor::<f32>::zeros(TensorShape::vector(hidden_dim as i64));
@@ -65,14 +65,14 @@ fn embed(emb_desc: &TensorDescriptor, hidden_dim: usize, ids: &[i64]) -> Tensor<
         mean_pool_f32(
             pool_in_desc.as_mojo().addr(),
             pool_out_desc.as_mojo().addr(),
-        )
+        );
     };
     pooled
 }
 
 fn tokenize(text: &str, vocab_size: usize) -> Vec<i64> {
     text.bytes()
-        .map(|b| (b as i64) % (vocab_size as i64))
+        .map(|b| i64::from(b) % (vocab_size as i64))
         .collect()
 }
 
@@ -109,14 +109,14 @@ fn main() {
 
     let weight_f32: &[f32] = unsafe {
         std::slice::from_raw_parts(
-            weight.data().as_ptr() as *const f32,
+            weight.data().as_ptr().cast::<f32>(),
             weight.data().len() / 4,
         )
     };
     let emb_desc = desc(
         DType::Float32,
         &TensorShape::matrix(vocab_size as i64, hidden_dim as i64),
-        weight_f32.as_ptr() as *const u8,
+        weight_f32.as_ptr().cast::<u8>(),
     );
 
     // Step 3: Verify embedding lookup matches direct memory access
@@ -125,14 +125,14 @@ fn main() {
     let test_ids_desc = desc(
         DType::Int64,
         &TensorShape::vector(3),
-        test_ids.as_ptr() as *const u8,
+        test_ids.as_ptr().cast::<u8>(),
     );
     unsafe {
         embedding_lookup_f32(
             emb_desc.as_mojo().addr(),
             test_ids_desc.as_mojo().addr(),
             test_emb.descriptor().as_mojo().addr(),
-        )
+        );
     };
 
     for t in 0..3 {
@@ -148,7 +148,7 @@ fn main() {
         mean_pool_f32(
             test_emb.descriptor().as_mojo().addr(),
             pooled.descriptor().as_mojo().addr(),
-        )
+        );
     };
     let mut rust_pooled = vec![0.0f32; hidden_dim];
     for h in 0..hidden_dim {
