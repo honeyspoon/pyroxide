@@ -86,6 +86,9 @@ Progressive tutorial — each builds on the previous.
 | 19 | [`bytes`](examples/examples/19_bytes.rs) | `u8`/`i64` arrays, XOR, prefix sum |
 | 20 | [`call_overhead`](examples/examples/20_call_overhead.rs) | Noop/identity benchmark, pointer stability |
 | 21 | [`edge_cases`](examples/examples/21_edge_cases.rs) | Zero-length, NaN in structs, byte roundtrip |
+| 22 | [`large_data`](examples/examples/22_large_data.rs) | 1M-element dot, scale-add, reduce-max |
+| 23 | [`chained`](examples/examples/23_chained.rs) | Normalize→argmax pipeline, NaN/-1 sentinels, histogram |
+| 24 | [`matrix`](examples/examples/24_matrix.rs) | Transpose, Hadamard product, trace |
 
 ## How it works
 
