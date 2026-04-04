@@ -8,7 +8,6 @@ use std::marker::PhantomData;
 
 /// A borrowed UTF-8 string for FFI. Pass `.as_raw()` and `.len_isize()`
 /// as two separate `Int` parameters to Mojo.
-#[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct MojoStr<'a> {
     ptr: *const u8,
@@ -29,10 +28,6 @@ impl<'a> MojoStr<'a> {
     #[inline]
     pub fn as_raw(&self) -> isize {
         self.ptr as isize
-    }
-
-    pub fn ptr(&self) -> *const u8 {
-        self.ptr
     }
 
     pub fn len(&self) -> usize {
@@ -101,7 +96,6 @@ mod tests {
         let text = "test";
         let s = MojoStr::new(text);
         assert_eq!(s.as_raw(), text.as_ptr() as isize);
-        assert_eq!(s.ptr(), text.as_ptr());
     }
 
     #[test]
