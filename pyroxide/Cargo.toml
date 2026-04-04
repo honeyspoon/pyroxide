@@ -18,7 +18,7 @@ max = ["dep:max-sys"]
 
 [dependencies]
 zerocopy = { version = "0.8", features = ["derive"] }
-max-sys = { version = "0.1.0", path = "../max-sys", optional = true }
+max-sys = { version = "0.1", path = "../max-sys", optional = true }
 
 [package.metadata.docs.rs]
 all-features = true
