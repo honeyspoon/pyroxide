@@ -44,6 +44,12 @@ name = "12_accumulator"
 name = "13_sorting"
 [[example]]
 name = "14_mandelbrot"
+[[example]]
+name = "15_nested_structs"
+[[example]]
+name = "16_struct_arrays"
+[[example]]
+name = "17_mixed_args"
 
 # Examples: same base as workspace but relaxed for teaching code
 [lints.clippy]

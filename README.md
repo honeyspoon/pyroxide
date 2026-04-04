@@ -79,6 +79,9 @@ Progressive tutorial — each builds on the previous.
 | 12 | [`accumulator`](examples/examples/12_accumulator.rs) | Stateful struct, repeated `MojoMut` across calls |
 | 13 | [`sorting`](examples/examples/13_sorting.rs) | In-place sort + reverse, verify against Rust |
 | 14 | [`mandelbrot`](examples/examples/14_mandelbrot.rs) | Compute-heavy grid, ASCII visualization |
+| 15 | [`nested_structs`](examples/examples/15_nested_structs.rs) | Line (2 Points), Triangle (3 Points), centroid |
+| 16 | [`struct_arrays`](examples/examples/16_struct_arrays.rs) | `&[Point]`, particle simulation, kinetic energy |
+| 17 | [`mixed_args`](examples/examples/17_mixed_args.rs) | 6 args: pointers + scalars + bools in one call |
 
 ## How it works
 
