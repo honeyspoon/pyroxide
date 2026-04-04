@@ -4,6 +4,7 @@
 //! `(ptr, len)` pair. Rust owns the string data; Mojo borrows it
 //! for the duration of the FFI call.
 
+use crate::bridge::MojoAddr;
 use std::marker::PhantomData;
 
 /// A borrowed UTF-8 string slice for FFI. Layout: `(ptr, len)`.
@@ -27,6 +28,12 @@ impl<'a> MojoStr<'a> {
         }
     }
 
+    /// Address of the string data — pass to Mojo's `Int` parameter.
+    #[inline]
+    pub fn addr(&self) -> MojoAddr {
+        MojoAddr::from_ptr(self.ptr)
+    }
+
     pub fn ptr(&self) -> *const u8 {
         self.ptr
     }
@@ -37,6 +44,12 @@ impl<'a> MojoStr<'a> {
 
     pub fn is_empty(&self) -> bool {
         self.len == 0
+    }
+
+    /// Length as `isize` — for passing to Mojo's `Int` parameter.
+    #[inline]
+    pub fn len_isize(&self) -> isize {
+        self.len as isize
     }
 
     /// Reconstruct a `&str` from a Mojo-returned `(ptr, len)`.

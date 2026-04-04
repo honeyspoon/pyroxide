@@ -51,6 +51,25 @@ impl MojoAddr {
     pub const fn as_raw(self) -> isize {
         self.0
     }
+
+    /// Create from any raw pointer.
+    #[inline]
+    pub fn from_ptr<T>(ptr: *const T) -> Self {
+        Self(ptr as isize)
+    }
+
+    /// Create from any mutable raw pointer.
+    #[inline]
+    pub fn from_mut_ptr<T>(ptr: *mut T) -> Self {
+        Self(ptr as isize)
+    }
+}
+
+impl From<MojoAddr> for isize {
+    #[inline]
+    fn from(addr: MojoAddr) -> Self {
+        addr.0
+    }
 }
 
 // ── Conversion traits ──
@@ -198,5 +217,45 @@ impl<'a, T: IntoBytes + Immutable> MojoSlice<'a, T> {
     #[inline]
     pub fn size_bytes(&self) -> usize {
         self.len * std::mem::size_of::<T>()
+    }
+}
+
+// ── MojoSliceMut ──
+
+/// Mutable zero-copy handle to a contiguous slice.
+///
+/// Use this when Mojo needs to write into a Rust-owned buffer.
+///
+/// `MojoSliceMut` is `!Send` and `!Sync`.
+pub struct MojoSliceMut<'a, T: IntoBytes + FromBytes> {
+    ptr: NonNull<T>,
+    len: usize,
+    _marker: PhantomData<&'a mut [T]>,
+}
+
+impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
+    #[inline]
+    pub fn new(slice: &'a mut [T]) -> Self {
+        Self {
+            ptr: NonNull::from(&mut *slice).cast(),
+            len: slice.len(),
+            _marker: PhantomData,
+        }
+    }
+
+    /// The address of the first element.
+    #[inline]
+    pub fn addr(&self) -> MojoAddr {
+        MojoAddr(self.ptr.as_ptr() as isize)
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
     }
 }
