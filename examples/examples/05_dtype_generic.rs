@@ -2,20 +2,10 @@
 // 05: DType-generic programming — one template, many types
 // ─────────────────────────────────────────────────────────
 //
-// Mojo can parameterize functions on DType — write one algorithm
-// that works for f32, f64, i32, etc. The compiler monomorphizes
-// each variant at compile time. Zero runtime dispatch.
-//
-// In mojo/dtype_generic.mojo:
-//
-//     def _sum_impl[dtype: DType](addr: Int, n: Int) -> Scalar[dtype]:
-//         ...
-//
-//     @export
-//     def sum_f32(addr: Int, n: Int) -> Float32:
-//         return _sum_impl[DType.float32](addr, n)
-//
-// One implementation, three exports. Each is fully specialized.
+// Mojo parameterizes functions on DType — one algorithm, specialized
+// for f32, f64, i32 at compile time. Zero runtime dispatch.
+
+use pyroxide::bridge::MojoSlice;
 
 unsafe extern "C" {
     fn sum_f32(addr: isize, n: isize) -> f32;
@@ -28,9 +18,13 @@ fn main() {
     let f64s = [1.0f64, 2.0, 3.0];
     let i32s = [10i32, 20, 30];
 
-    let sf32 = unsafe { sum_f32(f32s.as_ptr() as isize, 3) };
-    let sf64 = unsafe { sum_f64(f64s.as_ptr() as isize, 3) };
-    let si32 = unsafe { sum_i32(i32s.as_ptr() as isize, 3) };
+    let sf = MojoSlice::new(&f32s);
+    let sd = MojoSlice::new(&f64s);
+    let si = MojoSlice::new(&i32s);
+
+    let sf32 = unsafe { sum_f32(sf.addr().as_raw(), sf.len() as isize) };
+    let sf64 = unsafe { sum_f64(sd.addr().as_raw(), sd.len() as isize) };
+    let si32 = unsafe { sum_i32(si.addr().as_raw(), si.len() as isize) };
 
     assert_eq!(sf32, 6.0);
     assert_eq!(sf64, 6.0);

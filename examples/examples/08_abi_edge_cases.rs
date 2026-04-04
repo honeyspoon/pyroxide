@@ -20,6 +20,7 @@
 //   - Returning Tuple/String/List: not C-ABI compatible
 
 use pyroxide::abi::OutParam;
+use pyroxide::bridge::FromMojo;
 
 unsafe extern "C" {
     fn negate(b: bool) -> bool;
@@ -71,13 +72,13 @@ fn main() {
     assert_eq!(q2, -3); // Mojo // is floor division
     println!("  OutParam divmod(-7, 3) = ({q2}, {r2}): ok");
 
-    // ── In-place swap ──
+    // ── In-place swap via MojoMut ──
     let mut a = 1.0f64;
     let mut b = 2.0f64;
     unsafe {
         swap_f64(
-            std::ptr::addr_of_mut!(a) as isize,
-            std::ptr::addr_of_mut!(b) as isize,
+            a.as_mojo_mut().addr().as_raw(),
+            b.as_mojo_mut().addr().as_raw(),
         );
     };
     assert_eq!((a, b), (2.0, 1.0));
