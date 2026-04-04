@@ -152,9 +152,7 @@ impl<const N: usize> From<[i64; N]> for TensorShape {
 // ── TensorDescriptor ──
 
 mojo_type! {
-    /// Tensor descriptor for FFI. 152 bytes.
-    ///
-    /// Field offsets: `dtype`=0, `rank`=8, `dims`=16, `strides`=80, `data_ptr`=144
+    /// Tensor descriptor for FFI. 152 bytes, `#[repr(C)]`.
     pub struct TensorDescriptor {
         pub dtype: u8,
         _pad: [u8; 7],
@@ -183,6 +181,13 @@ impl TensorDescriptor {
             data_ptr: data_ptr as i64,
         }
     }
+}
+
+fn make_descriptor<T: MojoDType + zerocopy::IntoBytes + zerocopy::Immutable>(
+    shape: &TensorShape,
+    data: &[T],
+) -> TensorDescriptor {
+    TensorDescriptor::contiguous(T::DTYPE, shape, data.as_ptr().cast::<u8>())
 }
 
 // ── Tensor<T> ──
@@ -217,7 +222,7 @@ impl<T: Copy + Default + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> 
     }
 
     pub fn descriptor(&self) -> TensorDescriptor {
-        TensorDescriptor::contiguous(T::DTYPE, &self.shape, self.data.as_ptr().cast::<u8>())
+        make_descriptor(&self.shape, &self.data)
     }
 
     pub fn shape(&self) -> &TensorShape {
@@ -328,7 +333,7 @@ impl<'a, T: Copy + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> Tensor
     }
 
     pub fn descriptor(&self) -> TensorDescriptor {
-        TensorDescriptor::contiguous(T::DTYPE, &self.shape, self.data.as_ptr().cast::<u8>())
+        make_descriptor(&self.shape, self.data)
     }
 
     pub fn shape(&self) -> &TensorShape {
