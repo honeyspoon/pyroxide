@@ -58,6 +58,12 @@ name = "19_bytes"
 name = "20_call_overhead"
 [[example]]
 name = "21_edge_cases"
+[[example]]
+name = "22_large_data"
+[[example]]
+name = "23_chained"
+[[example]]
+name = "24_matrix"
 
 # Examples: same base as workspace but relaxed for teaching code
 [lints.clippy]
