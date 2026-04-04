@@ -41,7 +41,10 @@ pub fn catch_mojo_call<T: Default>(f: impl FnOnce() -> T) -> T {
     match panic::catch_unwind(AssertUnwindSafe(f)) {
         Ok(val) => val,
         Err(payload) => {
-            eprintln!("[embers] panic at FFI boundary: {}", panic_message(&payload));
+            eprintln!(
+                "[embers] panic at FFI boundary: {}",
+                panic_message(&payload)
+            );
             T::default()
         }
     }
@@ -53,7 +56,10 @@ pub fn catch_mojo_result<T>(f: impl FnOnce() -> T) -> MojoResult<T> {
     match panic::catch_unwind(AssertUnwindSafe(f)) {
         Ok(val) => MojoResult::ok(val),
         Err(payload) => {
-            eprintln!("[embers] panic at FFI boundary: {}", panic_message(&payload));
+            eprintln!(
+                "[embers] panic at FFI boundary: {}",
+                panic_message(&payload)
+            );
             MojoResult::err(MojoError::Panic)
         }
     }

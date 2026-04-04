@@ -65,10 +65,10 @@ pub mod prelude {
     pub use crate::bridge::{FromMojo, IntoMojo, MojoMut, MojoRef, MojoSlice};
     pub use crate::mojo_type;
     pub use crate::string::MojoStr;
-    pub use crate::trampoline::{catch_mojo_call, MojoError, MojoResult};
-    pub use crate::types::primitives::*;
+    pub use crate::trampoline::{MojoError, MojoResult, catch_mojo_call};
     #[cfg(feature = "max")]
     pub use crate::types::max;
+    pub use crate::types::primitives::*;
 }
 
 /// Declare a struct that can safely cross the Mojo FFI boundary.

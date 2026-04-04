@@ -25,10 +25,7 @@ unsafe extern "C" {
 
 fn main() {
     // ── Sum: Mojo reads 5 elements via TensorDescriptor ──
-    let t = Tensor::<f64>::from_data(
-        TensorShape::vector(5),
-        vec![1.0, 2.0, 3.0, 4.0, 5.0],
-    );
+    let t = Tensor::<f64>::from_data(TensorShape::vector(5), vec![1.0, 2.0, 3.0, 4.0, 5.0]);
     let sum = unsafe { tensor_sum_f64(t.descriptor().as_mojo().addr()) };
     assert_eq!(sum, 15.0);
     println!("  sum([1..5]) = {sum} [ok]");

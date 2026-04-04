@@ -43,8 +43,12 @@ impl DType {
     pub const fn byte_width(self) -> usize {
         match self {
             Self::Bool | Self::Int8 | Self::UInt8 => 1,
-            Self::Float8E8M0FNU | Self::Float8E3M4 | Self::Float8E4M3FN
-            | Self::Float8E4M3FNUZ | Self::Float8E5M2 | Self::Float8E5M2FNUZ => 1,
+            Self::Float8E8M0FNU
+            | Self::Float8E3M4
+            | Self::Float8E4M3FN
+            | Self::Float8E4M3FNUZ
+            | Self::Float8E5M2
+            | Self::Float8E5M2FNUZ => 1,
             Self::Int16 | Self::UInt16 | Self::Float16 | Self::BFloat16 => 2,
             Self::Int32 | Self::UInt32 | Self::Float32 => 4,
             Self::Int64 | Self::UInt64 | Self::Float64 => 8,
@@ -52,9 +56,15 @@ impl DType {
         }
     }
 
-    pub const fn is_float(self) -> bool { (self as u8) & 0x40 != 0 }
-    pub const fn is_integer(self) -> bool { (self as u8) & 0x80 != 0 }
-    pub const fn is_signed(self) -> bool { self.is_integer() && (self as u8) & 0x01 != 0 }
+    pub const fn is_float(self) -> bool {
+        (self as u8) & 0x40 != 0
+    }
+    pub const fn is_integer(self) -> bool {
+        (self as u8) & 0x80 != 0
+    }
+    pub const fn is_signed(self) -> bool {
+        self.is_integer() && (self as u8) & 0x01 != 0
+    }
 }
 
 impl fmt::Display for DType {
@@ -85,14 +95,23 @@ mojo_type! {
 impl TensorShape {
     pub fn new(dims: &[i64]) -> Self {
         assert!(dims.len() <= 8, "TensorShape supports up to 8 dimensions");
-        let mut shape = Self { rank: dims.len() as i64, dims: [0; 8] };
+        let mut shape = Self {
+            rank: dims.len() as i64,
+            dims: [0; 8],
+        };
         shape.dims[..dims.len()].copy_from_slice(dims);
         shape
     }
 
-    pub fn scalar() -> Self { Self::new(&[]) }
-    pub fn vector(n: i64) -> Self { Self::new(&[n]) }
-    pub fn matrix(rows: i64, cols: i64) -> Self { Self::new(&[rows, cols]) }
+    pub fn scalar() -> Self {
+        Self::new(&[])
+    }
+    pub fn vector(n: i64) -> Self {
+        Self::new(&[n])
+    }
+    pub fn matrix(rows: i64, cols: i64) -> Self {
+        Self::new(&[rows, cols])
+    }
 
     pub fn ndim(&self) -> usize {
         self.rank as usize
@@ -112,7 +131,9 @@ impl fmt::Display for TensorShape {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "(")?;
         for (i, &d) in self.as_slice().iter().enumerate() {
-            if i > 0 { write!(f, ", ")?; }
+            if i > 0 {
+                write!(f, ", ")?;
+            }
             write!(f, "{d}")?;
         }
         write!(f, ")")
@@ -151,8 +172,11 @@ impl TensorDescriptor {
             }
         }
         Self {
-            dtype: dtype as u8, _pad: [0; 7],
-            rank: shape.rank, dims: shape.dims, strides,
+            dtype: dtype as u8,
+            _pad: [0; 7],
+            rank: shape.rank,
+            dims: shape.dims,
+            strides,
             data_ptr: data_ptr as i64,
         }
     }
@@ -168,12 +192,20 @@ pub struct Tensor<T: Copy + zerocopy::IntoBytes + zerocopy::Immutable> {
 
 impl<T: Copy + Default + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> Tensor<T> {
     pub fn zeros(shape: TensorShape) -> Self {
-        Self { data: vec![T::default(); shape.numel()], shape }
+        Self {
+            data: vec![T::default(); shape.numel()],
+            shape,
+        }
     }
 
     pub fn from_data(shape: TensorShape, data: Vec<T>) -> Self {
         let expected = shape.numel();
-        assert_eq!(expected, data.len(), "shape has {expected} elements but got {}", data.len());
+        assert_eq!(
+            expected,
+            data.len(),
+            "shape has {expected} elements but got {}",
+            data.len()
+        );
         Self { data, shape }
     }
 
@@ -185,18 +217,28 @@ impl<T: Copy + Default + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> 
         TensorDescriptor::contiguous(T::DTYPE, &self.shape, self.data.as_ptr() as *const u8)
     }
 
-    pub fn shape(&self) -> &TensorShape { &self.shape }
-    pub fn dtype(&self) -> DType { T::DTYPE }
-    pub fn numel(&self) -> usize { self.data.len() }
+    pub fn shape(&self) -> &TensorShape {
+        &self.shape
+    }
+    pub fn dtype(&self) -> DType {
+        T::DTYPE
+    }
+    pub fn numel(&self) -> usize {
+        self.data.len()
+    }
 }
 
 impl<T: Copy + zerocopy::IntoBytes + zerocopy::Immutable> Deref for Tensor<T> {
     type Target = [T];
-    fn deref(&self) -> &[T] { &self.data }
+    fn deref(&self) -> &[T] {
+        &self.data
+    }
 }
 
 impl<T: Copy + zerocopy::IntoBytes + zerocopy::Immutable> DerefMut for Tensor<T> {
-    fn deref_mut(&mut self) -> &mut [T] { &mut self.data }
+    fn deref_mut(&mut self) -> &mut [T] {
+        &mut self.data
+    }
 }
 
 impl<T: Copy + fmt::Debug + zerocopy::IntoBytes + zerocopy::Immutable> fmt::Debug for Tensor<T> {
@@ -209,12 +251,16 @@ impl<T: Copy + fmt::Debug + zerocopy::IntoBytes + zerocopy::Immutable> fmt::Debu
     }
 }
 
-impl<T: Copy + fmt::Display + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> fmt::Display for Tensor<T> {
+impl<T: Copy + fmt::Display + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> fmt::Display
+    for Tensor<T>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Tensor<{}>{} [", T::DTYPE, self.shape)?;
         let show = self.data.len().min(6);
         for (i, v) in self.data[..show].iter().enumerate() {
-            if i > 0 { write!(f, ", ")?; }
+            if i > 0 {
+                write!(f, ", ")?;
+            }
             write!(f, "{v}")?;
         }
         if self.data.len() > show {

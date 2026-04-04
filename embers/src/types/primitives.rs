@@ -68,28 +68,42 @@ impl From<[f64; 2]> for Point {
 impl Add for Point {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        Self { x: self.x + rhs.x, y: self.y + rhs.y }
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
     }
 }
 
 impl Sub for Point {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
-        Self { x: self.x - rhs.x, y: self.y - rhs.y }
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
     }
 }
 
 impl Mul<f64> for Point {
     type Output = Self;
     fn mul(self, s: f64) -> Self {
-        Self { x: self.x * s, y: self.y * s }
+        Self {
+            x: self.x * s,
+            y: self.y * s,
+        }
     }
 }
 
 // ── Vec4 ──
 
 impl Vec4 {
-    pub const ZERO: Self = Self { x: 0.0, y: 0.0, z: 0.0, w: 0.0 };
+    pub const ZERO: Self = Self {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+        w: 0.0,
+    };
 
     pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
         Self { x, y, z, w }
@@ -129,21 +143,36 @@ impl From<[f64; 4]> for Vec4 {
 impl Add for Vec4 {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        Self { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z, w: self.w + rhs.w }
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+            w: self.w + rhs.w,
+        }
     }
 }
 
 impl Sub for Vec4 {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
-        Self { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z, w: self.w - rhs.w }
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+            w: self.w - rhs.w,
+        }
     }
 }
 
 impl Mul<f64> for Vec4 {
     type Output = Self;
     fn mul(self, s: f64) -> Self {
-        Self { x: self.x * s, y: self.y * s, z: self.z * s, w: self.w * s }
+        Self {
+            x: self.x * s,
+            y: self.y * s,
+            z: self.z * s,
+            w: self.w * s,
+        }
     }
 }
 
@@ -173,7 +202,9 @@ impl fmt::Display for Mat4 {
         for row in 0..4 {
             write!(f, "[")?;
             for col in 0..4 {
-                if col > 0 { write!(f, ", ")?; }
+                if col > 0 {
+                    write!(f, ", ")?;
+                }
                 write!(f, "{:8.3}", self.at(row, col))?;
             }
             writeln!(f, "]")?;

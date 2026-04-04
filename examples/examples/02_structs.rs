@@ -33,7 +33,7 @@ mojo_type! {
 unsafe extern "C" {
     fn point_distance(a: isize, b: isize) -> f64;
     fn color_luminance(c: isize) -> f64;
-    fn color_invert(c: isize);  // mutates in-place
+    fn color_invert(c: isize); // mutates in-place
 }
 
 fn main() {
@@ -45,14 +45,22 @@ fn main() {
     println!("  point_distance = {dist:.6} [ok]");
 
     // Read: pass a Color, get luminance back
-    let sky = Color { r: 0.4, g: 0.7, b: 1.0 };
+    let sky = Color {
+        r: 0.4,
+        g: 0.7,
+        b: 1.0,
+    };
     let lum = unsafe { color_luminance(sky.as_mojo().addr()) };
     let expected = 0.2126 * 0.4 + 0.7152 * 0.7 + 0.0722 * 1.0;
     assert!((lum - expected).abs() < 1e-6);
     println!("  color_luminance = {lum:.4} [ok]");
 
     // Mutate: Mojo inverts the color channels in-place
-    let mut c = Color { r: 0.2, g: 0.8, b: 0.5 };
+    let mut c = Color {
+        r: 0.2,
+        g: 0.8,
+        b: 0.5,
+    };
     unsafe { color_invert(c.as_mojo_mut().addr()) };
     assert!((c.r - 0.8).abs() < 1e-10);
     assert!((c.g - 0.2).abs() < 1e-10);

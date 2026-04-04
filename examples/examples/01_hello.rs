@@ -22,11 +22,8 @@ unsafe extern "C" {
 }
 
 fn main() {
-    let tests: &[(isize, isize, isize)] = &[
-        (40, 2, 42),
-        (-1, 1, 0),
-        (1_000_000, 999_999, 1_999_999),
-    ];
+    let tests: &[(isize, isize, isize)] =
+        &[(40, 2, 42), (-1, 1, 0), (1_000_000, 999_999, 1_999_999)];
 
     for &(a, b, expected) in tests {
         let got = unsafe { add(a, b) };

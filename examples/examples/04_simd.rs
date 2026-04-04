@@ -46,18 +46,27 @@ fn main() {
     let b: Vec<f32> = (0..n).map(|i| ((n - i) as f32) * 0.001).collect();
 
     let bench = |f: &dyn Fn() -> f32| -> u64 {
-        for _ in 0..100 { black_box(f()); }
+        for _ in 0..100 {
+            black_box(f());
+        }
         let start = Instant::now();
-        for _ in 0..1000 { black_box(f()); }
+        for _ in 0..1000 {
+            black_box(f());
+        }
         start.elapsed().as_nanos() as u64 / 1000
     };
 
-    let ns_scalar = bench(&|| unsafe { dot_scalar(a.as_ptr() as isize, b.as_ptr() as isize, n as isize) });
-    let ns_simd = bench(&|| unsafe { dot_simd(a.as_ptr() as isize, b.as_ptr() as isize, n as isize) });
+    let ns_scalar =
+        bench(&|| unsafe { dot_scalar(a.as_ptr() as isize, b.as_ptr() as isize, n as isize) });
+    let ns_simd =
+        bench(&|| unsafe { dot_simd(a.as_ptr() as isize, b.as_ptr() as isize, n as isize) });
     println!("\n  dot(n={n}):");
     println!("    scalar: {ns_scalar}ns");
     println!("    simd:   {ns_simd}ns");
-    println!("    speedup: {:.1}x", ns_scalar as f64 / ns_simd.max(1) as f64);
+    println!(
+        "    speedup: {:.1}x",
+        ns_scalar as f64 / ns_simd.max(1) as f64
+    );
 
     println!("all ok");
 }

@@ -3,10 +3,14 @@ name = "embers"
 description = "Zero-copy FFI bridge between Rust and Mojo"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+authors.workspace = true
+documentation = "https://docs.rs/embers"
 keywords = ["mojo", "ffi", "interop", "zero-copy", "modular"]
-categories = ["api-bindings", "external-ffi-bindings"]
+categories = ["api-bindings", "development-tools::ffi"]
+readme = "../README.md"
 
 [features]
 default = []
