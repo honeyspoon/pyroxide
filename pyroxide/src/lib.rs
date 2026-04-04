@@ -53,6 +53,7 @@
 //! - **`max`** — Types matching the Modular MAX ML framework
 //!   (`DType`, `TensorShape`, `TensorDescriptor`, Tensor)
 
+pub mod abi;
 pub mod bridge;
 pub mod string;
 pub mod trampoline;
@@ -62,6 +63,7 @@ pub mod types;
 pub use zerocopy;
 
 pub mod prelude {
+    pub use crate::abi::OutParam;
     pub use crate::bridge::{FromMojo, IntoMojo, MojoMut, MojoRef, MojoSlice};
     pub use crate::mojo_type;
     pub use crate::string::MojoStr;

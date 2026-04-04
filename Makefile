@@ -5,7 +5,7 @@ build:
 
 test:
 	@echo "Running all pyroxide examples..."
-	@for ex in 01_hello 02_structs 03_tensors 04_simd 05_dtype_generic 06_comptime 07_embeddings; do \
+	@for ex in 01_hello 02_structs 03_tensors 04_simd 05_dtype_generic 06_comptime 07_embeddings 08_abi_edge_cases; do \
 		echo ""; \
 		echo "===== $$ex ====="; \
 		DYLD_LIBRARY_PATH=examples/target/mojo-libs cargo run -p pyroxide-examples --example $$ex || exit 1; \

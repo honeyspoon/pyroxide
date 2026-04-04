@@ -27,6 +27,8 @@ name = "05_dtype_generic"
 name = "06_comptime"
 [[example]]
 name = "07_embeddings"
+[[example]]
+name = "08_abi_edge_cases"
 
 # Examples: same base as workspace but relaxed for teaching code
 [lints.clippy]
