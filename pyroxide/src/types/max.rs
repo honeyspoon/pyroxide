@@ -3,8 +3,10 @@
 //! `DType` values match `max/include/max/c/types.h` (bit-flag encoded).
 //! Tensor layout matches `ManagedTensorSlice` from MAX kernels.
 //!
-//! These are pure data structures — no FFI calls. Your application
-//! uses `mojo_import!` or `unsafe extern "C"` for Mojo functions.
+//! **Requires 64-bit.** `TensorDescriptor::data_ptr` stores pointers as `i64`.
+
+#[cfg(not(target_pointer_width = "64"))]
+compile_error!("pyroxide MAX types require a 64-bit target (data_ptr is i64)");
 
 use crate::mojo_type;
 use std::fmt;

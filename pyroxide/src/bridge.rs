@@ -79,10 +79,11 @@ impl<T: FromBytes + IntoBytes + Immutable + KnownLayout> FromMojo for T {}
 
 /// Immutable, lifetime-bound pointer to Rust data for Mojo.
 ///
-/// `MojoRef` is `!Send` and `!Sync`.
+/// `MojoRef` is `!Send` and `!Sync` — enforced via `PhantomData<*const ()>`.
 pub struct MojoRef<'a, T: IntoBytes + Immutable> {
     ptr: NonNull<T>,
     _marker: PhantomData<&'a T>,
+    _not_send: PhantomData<*const ()>, // enforce !Send + !Sync
 }
 
 impl<'a, T: IntoBytes + Immutable> MojoRef<'a, T> {
@@ -91,6 +92,7 @@ impl<'a, T: IntoBytes + Immutable> MojoRef<'a, T> {
         Self {
             ptr: NonNull::from(val),
             _marker: PhantomData,
+            _not_send: PhantomData,
         }
     }
 
@@ -110,10 +112,11 @@ impl<'a, T: IntoBytes + Immutable> MojoRef<'a, T> {
 
 /// Mutable, lifetime-bound pointer. Mojo can read and write.
 ///
-/// `MojoMut` is `!Send` and `!Sync`.
+/// `MojoMut` is `!Send` and `!Sync` — enforced via `PhantomData<*const ()>`.
 pub struct MojoMut<'a, T: IntoBytes + FromBytes> {
     ptr: NonNull<T>,
     _marker: PhantomData<&'a mut T>,
+    _not_send: PhantomData<*const ()>,
 }
 
 impl<'a, T: IntoBytes + FromBytes> MojoMut<'a, T> {
@@ -122,6 +125,7 @@ impl<'a, T: IntoBytes + FromBytes> MojoMut<'a, T> {
         Self {
             ptr: NonNull::from(&mut *val),
             _marker: PhantomData,
+            _not_send: PhantomData,
         }
     }
 
@@ -145,6 +149,7 @@ pub struct MojoSlice<'a, T: IntoBytes + Immutable> {
     ptr: NonNull<T>,
     len: usize,
     _marker: PhantomData<&'a [T]>,
+    _not_send: PhantomData<*const ()>,
 }
 
 impl<'a, T: IntoBytes + Immutable> MojoSlice<'a, T> {
@@ -154,6 +159,7 @@ impl<'a, T: IntoBytes + Immutable> MojoSlice<'a, T> {
             ptr: NonNull::from(slice).cast(),
             len: slice.len(),
             _marker: PhantomData,
+            _not_send: PhantomData,
         }
     }
 
@@ -194,6 +200,7 @@ pub struct MojoSliceMut<'a, T: IntoBytes + FromBytes> {
     ptr: NonNull<T>,
     len: usize,
     _marker: PhantomData<&'a mut [T]>,
+    _not_send: PhantomData<*const ()>,
 }
 
 impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
@@ -203,6 +210,7 @@ impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
             ptr: NonNull::from(&mut *slice).cast(),
             len: slice.len(),
             _marker: PhantomData,
+            _not_send: PhantomData,
         }
     }
 
