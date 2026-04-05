@@ -27,7 +27,10 @@ mojo_fn! {
 }
 // Generates safe wrapper
 ```
-Tried early on (as `mojo_import!`) and removed — we didn't know the API shape well enough to commit to a macro surface.
+Tried early on (as `mojo_import!`) and removed for two reasons:
+1. **Epistemic** — we didn't know the API shape (mixed args, &mut, scalars vs pointers)
+2. **Technical** — the macro would hide `unsafe`, which is dishonest about FFI
+See also ADR-014 which elaborates on reason #2.
 
 ### C. Proc macro `#[mojo_fn]`
 ```rust

@@ -1,6 +1,6 @@
 //! Panic-safe trampoline for the FFI boundary.
 //!
-//! [`catch_mojo_call`] catches **Rust panics** inside a closure, preventing
+//! [`catch_panic_at_ffi`] catches **Rust panics** inside a closure, preventing
 //! undefined behavior from stack unwinding across `extern "C"`.
 //!
 //! # What it catches
@@ -22,7 +22,7 @@
 //! // Callback that Mojo will invoke:
 //! #[unsafe(no_mangle)]
 //! extern "C" fn my_callback() -> f64 {
-//!     catch_mojo_call(|| {
+//!     catch_panic_at_ffi(|| {
 //!         // If this panics, returns 0.0 instead of unwinding across FFI
 //!         42.0
 //!     })
@@ -47,7 +47,7 @@ fn panic_message(payload: &Box<dyn Any + Send>) -> &str {
 ///
 /// **This does NOT catch Mojo errors or segfaults** — only Rust panics.
 #[inline]
-pub fn catch_mojo_call<T: Default>(f: impl FnOnce() -> T) -> T {
+pub fn catch_panic_at_ffi<T: Default>(f: impl FnOnce() -> T) -> T {
     match panic::catch_unwind(AssertUnwindSafe(f)) {
         Ok(val) => val,
         Err(payload) => {
@@ -60,19 +60,26 @@ pub fn catch_mojo_call<T: Default>(f: impl FnOnce() -> T) -> T {
     }
 }
 
+/// Deprecated alias for [`catch_panic_at_ffi`].
+#[deprecated(since = "0.1.2", note = "renamed to catch_panic_at_ffi")]
+#[inline]
+pub fn catch_mojo_call<T: Default>(f: impl FnOnce() -> T) -> T {
+    catch_panic_at_ffi(f)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn success_returns_value() {
-        let result = catch_mojo_call(|| 42i32);
+        let result = catch_panic_at_ffi(|| 42i32);
         assert_eq!(result, 42);
     }
 
     #[test]
     fn panic_returns_default() {
-        let result: f64 = catch_mojo_call(|| {
+        let result: f64 = catch_panic_at_ffi(|| {
             panic!("test panic");
         });
         assert_eq!(result, 0.0);
@@ -80,7 +87,7 @@ mod tests {
 
     #[test]
     fn panic_returns_false_for_bool() {
-        let result: bool = catch_mojo_call(|| {
+        let result: bool = catch_panic_at_ffi(|| {
             panic!("test");
         });
         assert!(!result);

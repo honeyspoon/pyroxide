@@ -98,6 +98,13 @@ mojo_type! {
 }
 
 impl TensorShape {
+    /// Create a shape from dimension sizes.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `dims.len() > 8`. The 8-dimension cap is a pyroxide
+    /// design choice for fixed-size `#[repr(C)]` layout — Mojo itself
+    /// has no such restriction.
     pub fn new(dims: &[i64]) -> Self {
         assert!(dims.len() <= 8, "TensorShape supports up to 8 dimensions");
         let mut shape = Self {
@@ -166,6 +173,11 @@ mojo_type! {
 }
 
 impl TensorDescriptor {
+    /// Create a descriptor for a contiguous (row-major) tensor.
+    ///
+    /// Strides are computed for contiguous layout. Non-contiguous tensors
+    /// (e.g., transposed views) are not yet supported — the Mojo-side
+    /// examples assume contiguous data and ignore stride fields.
     pub fn contiguous(dtype: DType, shape: &TensorShape, data_ptr: *const u8) -> Self {
         let mut strides = [0i64; 8];
         if shape.rank > 0 {
