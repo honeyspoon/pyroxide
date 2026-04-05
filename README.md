@@ -48,6 +48,7 @@ Pyroxide lets Rust and Mojo share data with zero copies. Define types once in Ru
 
 - [Rust](https://rustup.rs) 1.85+ (edition 2024)
 - [Mojo](https://docs.modular.com/mojo/manual/get-started) via pixi: `pixi global install mojo`
+- **64-bit target** required for `features = ["max"]` (tensor types store pointers as `i64`)
 
 ## Quick start
 
