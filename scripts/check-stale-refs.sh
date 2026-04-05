@@ -16,6 +16,10 @@ REMOVED_TYPES=(
     "MojoError"
     "catch_mojo_result"
     "mojo_import!"
+    "MojoRef"
+    "MojoMut"
+    "OutParam"
+    "BorrowedDescriptor"
 )
 
 # Extract only "### Added" sections from CHANGELOG, check for removed types
@@ -28,7 +32,7 @@ for type in "${REMOVED_TYPES[@]}"; do
 done
 
 # Check that public items mentioned in README actually exist in source
-for item in IntoMojo FromMojo MojoRef MojoMut MojoSlice MojoSliceMut MojoStr OutParam catch_panic_at_ffi; do
+for item in IntoMojo FromMojo MojoSlice MojoSliceMut MojoStr OutSlot catch_panic_at_ffi DescriptorGuard; do
     if ! grep -rq "pub.*$item\|pub fn $item\|pub struct $item\|pub trait $item" "$SRC/"; then
         echo "FAIL: README references '$item' but it's not pub in source"
         ERRORS=$((ERRORS + 1))

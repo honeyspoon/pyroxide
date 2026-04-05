@@ -204,26 +204,35 @@ fn make_descriptor<T: MojoDType + zerocopy::IntoBytes + zerocopy::Immutable>(
     TensorDescriptor::contiguous(T::DTYPE, shape, data.as_ptr().cast::<u8>())
 }
 
-// ── BorrowedDescriptor ──
+// ── DescriptorGuard ──
 
 /// A `TensorDescriptor` tied to the lifetime of its source data.
 ///
-/// Prevents dangling `data_ptr`: the compiler ensures the tensor
-/// outlives the descriptor. Call `.as_raw()` to get the `isize`.
-pub struct BorrowedDescriptor<'a> {
+/// Follows the `MutexGuard` pattern: holds the borrow, derefs to
+/// `TensorDescriptor`. The compiler ensures the tensor outlives
+/// the descriptor — no dangling `data_ptr`.
+///
+/// ```rust,ignore
+/// let desc = tensor.descriptor(); // DescriptorGuard<'_>
+/// unsafe { mojo_fn(desc.as_raw()) };
+/// // desc borrows tensor — can't drop tensor while desc is alive
+/// ```
+pub struct DescriptorGuard<'a> {
     desc: TensorDescriptor,
     _marker: std::marker::PhantomData<&'a ()>,
 }
 
-impl BorrowedDescriptor<'_> {
+impl DescriptorGuard<'_> {
     /// Address of the descriptor for Mojo's `Int` parameter.
     #[inline]
     pub fn as_raw(&self) -> isize {
         std::ptr::from_ref(&self.desc) as isize
     }
+}
 
-    /// Access the underlying descriptor fields (for inspection/debugging).
-    pub fn inner(&self) -> &TensorDescriptor {
+impl std::ops::Deref for DescriptorGuard<'_> {
+    type Target = TensorDescriptor;
+    fn deref(&self) -> &TensorDescriptor {
         &self.desc
     }
 }
@@ -262,8 +271,8 @@ impl<T: Copy + Default + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> 
     /// Get a lifetime-bound descriptor for FFI.
     ///
     /// The descriptor borrows `self` — the compiler prevents dangling `data_ptr`.
-    pub fn descriptor(&self) -> BorrowedDescriptor<'_> {
-        BorrowedDescriptor {
+    pub fn descriptor(&self) -> DescriptorGuard<'_> {
+        DescriptorGuard {
             desc: make_descriptor(&self.shape, &self.data),
             _marker: std::marker::PhantomData,
         }
@@ -376,8 +385,8 @@ impl<'a, T: Copy + zerocopy::IntoBytes + zerocopy::Immutable + MojoDType> Tensor
         Self { data, shape }
     }
 
-    pub fn descriptor(&self) -> BorrowedDescriptor<'_> {
-        BorrowedDescriptor {
+    pub fn descriptor(&self) -> DescriptorGuard<'_> {
+        DescriptorGuard {
             desc: make_descriptor(&self.shape, self.data),
             _marker: std::marker::PhantomData,
         }
@@ -462,10 +471,10 @@ mod tests {
     fn tensor_descriptor_layout() {
         let t = Tensor::<f64>::from_data(TensorShape::vector(5), vec![1.0, 2.0, 3.0, 4.0, 5.0]);
         let desc = t.descriptor();
-        assert_eq!(desc.inner().dtype, DType::Float64 as u8);
-        assert_eq!(desc.inner().rank, 1);
-        assert_eq!(desc.inner().dims[0], 5);
-        assert_ne!(desc.inner().data_ptr, 0);
+        assert_eq!(desc.dtype, DType::Float64 as u8);
+        assert_eq!(desc.rank, 1);
+        assert_eq!(desc.dims[0], 5);
+        assert_ne!(desc.data_ptr, 0);
     }
 
     #[test]
@@ -477,7 +486,7 @@ mod tests {
 
         // Descriptor should point to the original data, not a copy
         let desc = view.descriptor();
-        assert_eq!(desc.inner().data_ptr, data.as_ptr() as i64);
+        assert_eq!(desc.data_ptr, data.as_ptr() as i64);
     }
 
     #[test]

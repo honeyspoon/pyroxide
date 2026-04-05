@@ -10,7 +10,7 @@
 //   - Bool: true/false round-trip
 //   - Int: MIN/MAX boundary values
 //   - Float64: NaN, ±Inf, -0.0 preservation
-//   - Out-pointers: multiple return values via OutParam
+//   - Out-pointers: multiple return values via OutSlot
 //   - In-place mutation: swap
 //   - Error handling: raises caught inside @export
 //
@@ -19,8 +19,8 @@
 //   - raises escaping @export: segfaults (exit 139)
 //   - Returning Tuple/String/List: not C-ABI compatible
 
-use pyroxide::abi::OutParam;
 use pyroxide::bridge::FromMojo;
+use pyroxide::bridge::OutSlot;
 
 unsafe extern "C" {
     fn negate(b: bool) -> bool;
@@ -63,14 +63,20 @@ fn main() {
     assert_eq!(unsafe { echo_f64(f64::MIN_POSITIVE) }, f64::MIN_POSITIVE);
     println!("  Float64 (0, -0, NaN, ±Inf, MIN, MAX): ok");
 
-    // ── Out-pointers via OutParam ──
-    let (q, r): (i64, i64) = unsafe { OutParam::call2(|qp, rp| divmod_out(17, 5, qp, rp)) };
+    // ── Out-pointers via OutSlot ──
+    let mut q_slot = OutSlot::<i64>::new();
+    let mut r_slot = OutSlot::<i64>::new();
+    unsafe { divmod_out(17, 5, q_slot.as_raw(), r_slot.as_raw()) };
+    let (q, r) = unsafe { (q_slot.assume_init(), r_slot.assume_init()) };
     assert_eq!((q, r), (3, 2));
-    println!("  OutParam::call2 divmod(17, 5) = ({q}, {r}): ok");
+    println!("  OutSlot divmod(17, 5) = ({q}, {r}): ok");
 
-    let (q2, r2): (i64, i64) = unsafe { OutParam::call2(|qp, rp| divmod_out(-7, 3, qp, rp)) };
+    let mut q2_slot = OutSlot::<i64>::new();
+    let mut r2_slot = OutSlot::<i64>::new();
+    unsafe { divmod_out(-7, 3, q2_slot.as_raw(), r2_slot.as_raw()) };
+    let (q2, r2) = unsafe { (q2_slot.assume_init(), r2_slot.assume_init()) };
     assert_eq!(q2, -3); // Mojo // is floor division
-    println!("  OutParam divmod(-7, 3) = ({q2}, {r2}): ok");
+    println!("  OutSlot divmod(-7, 3) = ({q2}, {r2}): ok");
 
     // ── In-place swap via MojoMut ──
     let mut a = 1.0f64;
