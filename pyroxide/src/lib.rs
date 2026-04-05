@@ -30,6 +30,12 @@
 //! let len = unsafe { vec3_length(v.as_raw()) };
 //! ```
 //!
+//! ## Why `mojo_type!` but no `mojo_fn!`?
+//!
+//! Types need 6 derives that are hard to remember — the macro prevents errors.
+//! Functions just need `unsafe extern "C" { ... }` — standard Rust, 1 line,
+//! nothing to simplify. See [ADR-014](https://github.com/honeyspoon/pyroxide/blob/main/design/014-macro-asymmetry.md).
+//!
 //! ## Feature flags
 //!
 //! - **`max`** — Types matching the Modular MAX ML framework
