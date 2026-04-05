@@ -60,13 +60,6 @@ pub fn catch_panic_at_ffi<T: Default>(f: impl FnOnce() -> T) -> T {
     }
 }
 
-/// Deprecated alias for [`catch_panic_at_ffi`].
-#[deprecated(since = "0.1.2", note = "renamed to catch_panic_at_ffi")]
-#[inline]
-pub fn catch_mojo_call<T: Default>(f: impl FnOnce() -> T) -> T {
-    catch_panic_at_ffi(f)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
