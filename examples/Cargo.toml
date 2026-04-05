@@ -103,3 +103,13 @@ semicolon_outside_block = { level = "allow", priority = 1 }
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
+[[example]]
+name = "27_scalar_types"
+[[example]]
+name = "28_aliasing"
+[[example]]
+name = "29_concurrent"
+[[example]]
+name = "30_null_ptr"
+[[example]]
+name = "31_conditional_outparam"

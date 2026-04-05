@@ -107,6 +107,11 @@ Progressive tutorial — each builds on the previous.
 | 24 | [`matrix`](examples/examples/24_matrix.rs) | Transpose, Hadamard product, trace |
 | 25 | [`catch_panic`](examples/examples/25_catch_panic.rs) | `catch_mojo_call`, string output, panic recovery |
 | 26 | [`pipeline`](examples/examples/26_pipeline.rs) | Enum-like dispatch, multi-step transforms |
+| 27 | [`scalar_types`](examples/examples/27_scalar_types.rs) | Every integer/float width round-tripped |
+| 28 | [`aliasing`](examples/examples/28_aliasing.rs) | Same pointer as src+dst, overlapping shift |
+| 29 | [`concurrent`](examples/examples/29_concurrent.rs) | 8 threads calling Mojo simultaneously |
+| 30 | [`null_ptr`](examples/examples/30_null_ptr.rs) | addr=0 with n=0 guard pattern |
+| 31 | [`conditional_outparam`](examples/examples/31_conditional_outparam.rs) | OutParam soundness: always-write sentinel |
 
 ## How it works
 
