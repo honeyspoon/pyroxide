@@ -64,21 +64,21 @@ fn main() {
     println!("  Float64 (0, -0, NaN, ±Inf, MIN, MAX): ok");
 
     // ── Out-pointers via OutSlot ──
-    let mut q_slot = OutSlot::<i64>::new();
-    let mut r_slot = OutSlot::<i64>::new();
+    let mut q_slot = OutSlot::<i64>::uninit();
+    let mut r_slot = OutSlot::<i64>::uninit();
     unsafe { divmod_out(17, 5, q_slot.as_raw(), r_slot.as_raw()) };
     let (q, r) = unsafe { (q_slot.assume_init(), r_slot.assume_init()) };
     assert_eq!((q, r), (3, 2));
     println!("  OutSlot divmod(17, 5) = ({q}, {r}): ok");
 
-    let mut q2_slot = OutSlot::<i64>::new();
-    let mut r2_slot = OutSlot::<i64>::new();
+    let mut q2_slot = OutSlot::<i64>::uninit();
+    let mut r2_slot = OutSlot::<i64>::uninit();
     unsafe { divmod_out(-7, 3, q2_slot.as_raw(), r2_slot.as_raw()) };
     let (q2, r2) = unsafe { (q2_slot.assume_init(), r2_slot.assume_init()) };
     assert_eq!(q2, -3); // Mojo // is floor division
     println!("  OutSlot divmod(-7, 3) = ({q2}, {r2}): ok");
 
-    // ── In-place swap via MojoMut ──
+    // ── In-place swap via as_raw_mut ──
     let mut a = 1.0f64;
     let mut b = 2.0f64;
     unsafe {

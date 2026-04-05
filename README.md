@@ -40,7 +40,7 @@ Pyroxide lets Rust and Mojo share data with zero copies. Define types once in Ru
 |--------|------|
 | `bridge` | `IntoMojo`, `FromMojo`, `MojoSlice`, `MojoSliceMut`, `OutSlot` |
 | `abi` | ABI type mapping docs |
-| `trampoline` | `catch_mojo_call` (panic-safe FFI) |
+| `trampoline` | `catch_panic_at_ffi` (panic-safe FFI) |
 | `string` | `MojoStr` (ptr+len for FFI) |
 | `types::max` | `DType`, `Tensor<T>`, `TensorView<T>`, `TensorDescriptor`, `TensorShape` |
 
@@ -105,13 +105,13 @@ Progressive tutorial — each builds on the previous.
 | 22 | [`large_data`](examples/examples/22_large_data.rs) | 1M-element dot, scale-add, reduce-max |
 | 23 | [`chained`](examples/examples/23_chained.rs) | Normalize→argmax pipeline, NaN/-1 sentinels, histogram |
 | 24 | [`matrix`](examples/examples/24_matrix.rs) | Transpose, Hadamard product, trace |
-| 25 | [`catch_panic`](examples/examples/25_catch_panic.rs) | `catch_mojo_call`, string output, panic recovery |
+| 25 | [`catch_panic`](examples/examples/25_catch_panic.rs) | `catch_panic_at_ffi`, string output, panic recovery |
 | 26 | [`pipeline`](examples/examples/26_pipeline.rs) | Enum-like dispatch, multi-step transforms |
 | 27 | [`scalar_types`](examples/examples/27_scalar_types.rs) | Every integer/float width round-tripped |
 | 28 | [`aliasing`](examples/examples/28_aliasing.rs) | Same pointer as src+dst, overlapping shift |
 | 29 | [`concurrent`](examples/examples/29_concurrent.rs) | 8 threads calling Mojo simultaneously |
 | 30 | [`null_ptr`](examples/examples/30_null_ptr.rs) | addr=0 with n=0 guard pattern |
-| 31 | [`conditional_outparam`](examples/examples/31_conditional_outparam.rs) | OutParam soundness: always-write sentinel |
+| 31 | [`conditional_outparam`](examples/examples/31_conditional_outparam.rs) | OutSlot soundness: always-write sentinel |
 
 ## How it works
 
@@ -159,13 +159,13 @@ def compute_energy(addr: Int) -> Float64:
 | `MojoSliceMut::new(&mut data).as_raw()` | 0 copies (mutable slice) |
 | `MojoStr::new(s).as_raw()` | 0 copies (string → ptr+len) |
 | `TensorDescriptor` | 0 copies |
-| `OutParam::call2(\|\| ...)` | 0ns overhead (MaybeUninit) |
-| `catch_mojo_call(\|\| ...)` | 0ns on success |
+| `OutSlot::uninit(\|\| ...)` | 0ns overhead (MaybeUninit) |
+| `catch_panic_at_ffi(\|\| ...)` | 0ns on success |
 
 ### Safety
 
 - **Dangling pointers**: `DescriptorGuard` ties tensor descriptors to the tensor's lifetime
-- **Panics across FFI**: `catch_mojo_call` catches panics (unwinding across `extern "C"` is UB)
+- **Panics across FFI**: `catch_panic_at_ffi` catches panics (unwinding across `extern "C"` is UB)
 - **Layout mismatch**: `mojo_type!` enforces `#[repr(C)]` at compile time
 - **Ownership**: Rust owns, Mojo borrows — documented and enforced by types
 
@@ -185,7 +185,7 @@ Early stage. API will change.
 | `MojoSlice` / `MojoSliceMut` | Tested across 15+ examples |
 | `MojoStr` | Tested (tokenizer, string output) |
 | `OutSlot` | Tested (divmod, ABI edge cases) |
-| `catch_mojo_call` | Tested (panic recovery example) |
+| `catch_panic_at_ffi` | Tested (panic recovery example) |
 | `Tensor<T>` / `TensorView<T>` | Tested with HuggingFace + neural layer |
 | `abi` module | Empirically verified against Mojo 0.26 |
 | Proc macros (`#[mojo_fn]`) | Not implemented — deferred to 0.2.0 |

@@ -222,13 +222,8 @@ pub struct DescriptorGuard<'a> {
     _marker: std::marker::PhantomData<&'a ()>,
 }
 
-impl DescriptorGuard<'_> {
-    /// Address of the descriptor for Mojo's `Int` parameter.
-    #[inline]
-    pub fn as_raw(&self) -> isize {
-        std::ptr::from_ref(&self.desc) as isize
-    }
-}
+// DescriptorGuard derefs to TensorDescriptor, which implements
+// IntoMojo::as_raw(). So desc.as_raw() works via auto-deref.
 
 impl std::ops::Deref for DescriptorGuard<'_> {
     type Target = TensorDescriptor;

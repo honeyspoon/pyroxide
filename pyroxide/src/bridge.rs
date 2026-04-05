@@ -162,8 +162,8 @@ impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
 /// Follows the stdlib `MaybeUninit` pattern — composable, no numbered variants.
 ///
 /// ```rust,ignore
-/// let mut q = OutSlot::<i64>::new();
-/// let mut r = OutSlot::<i64>::new();
+/// let mut q = OutSlot::<i64>::uninit();
+/// let mut r = OutSlot::<i64>::uninit();
 /// unsafe { divmod(17, 5, q.as_raw(), r.as_raw()) };
 /// let (q, r) = unsafe { (q.assume_init(), r.assume_init()) };
 /// ```
@@ -172,9 +172,9 @@ pub struct OutSlot<T> {
 }
 
 impl<T> OutSlot<T> {
-    /// Create an uninitialized slot.
+    /// Create an uninitialized slot (mirrors `MaybeUninit::uninit()`).
     #[inline]
-    pub fn new() -> Self {
+    pub fn uninit() -> Self {
         Self {
             inner: std::mem::MaybeUninit::uninit(),
         }
@@ -200,7 +200,7 @@ impl<T> OutSlot<T> {
 
 impl<T> Default for OutSlot<T> {
     fn default() -> Self {
-        Self::new()
+        Self::uninit()
     }
 }
 
@@ -296,7 +296,7 @@ mod tests {
 
     #[test]
     fn out_slot_basic() {
-        let mut slot = OutSlot::<i64>::new();
+        let mut slot = OutSlot::<i64>::uninit();
         let addr = slot.as_raw();
         // Simulate Mojo writing to the slot
         unsafe { *(addr as *mut i64) = 42 };

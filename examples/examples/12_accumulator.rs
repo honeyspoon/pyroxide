@@ -1,9 +1,9 @@
 // ─────────────────────────────────────────────────────────
-// 12: Stateful accumulator — repeated MojoMut across calls
+// 12: Stateful accumulator — repeated as_raw_mut() across calls
 // ─────────────────────────────────────────────────────────
 //
 // Rust owns a stats struct. Mojo updates it across multiple calls
-// as data arrives in chunks. Tests whether MojoMut feels natural
+// as data arrives in chunks. Tests whether as_raw_mut() feels natural
 // for the repeated-mutation-across-calls pattern.
 
 use pyroxide::prelude::*;

@@ -8,8 +8,8 @@ Each ADR documents a design choice, what alternatives were considered, and why w
 | [002](002-struct-layout.md) | `mojo_type!` macro for `#[repr(C)]` + zerocopy, explicit padding required |
 | [003](003-slice-handles.md) | `MojoSlice` + `MojoSliceMut` — mirrors `&[T]` / `&mut [T]` |
 | [004](004-string-passing.md) | `MojoStr` — dedicated type for `(ptr, len)` text passing |
-| [005](005-multiple-returns.md) | `OutParam::call*` — unsafe fn with MaybeUninit for out-pointers |
-| [006](006-panic-safety.md) | `catch_mojo_call` — catch_unwind at FFI boundary |
+| [005](005-multiple-returns.md) | `OutSlot::call*` — unsafe fn with MaybeUninit for out-pointers |
+| [006](006-panic-safety.md) | `catch_panic_at_ffi` — catch_unwind at FFI boundary |
 | [007](007-error-handling.md) | Error sentinels (NaN, -1) — no framework-level error type |
 | [008](008-tensor-types.md) | `TensorDescriptor` — 152-byte repr(C) struct matching MAX layout |
 | [009](009-conversion-traits.md) | `IntoMojo`/`FromMojo` — blanket impls on zerocopy types |
