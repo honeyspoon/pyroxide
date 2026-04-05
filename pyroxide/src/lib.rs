@@ -55,7 +55,9 @@ pub mod prelude {
     pub use crate::bridge::{FromMojo, IntoMojo, MojoMut, MojoRef, MojoSlice, MojoSliceMut};
     pub use crate::mojo_type;
     pub use crate::string::MojoStr;
+    #[allow(deprecated, reason = "re-export for backwards compat")]
     pub use crate::trampoline::catch_mojo_call;
+    pub use crate::trampoline::catch_panic_at_ffi;
     #[cfg(feature = "max")]
     pub use crate::types::max;
     pub use crate::types::primitives::*;

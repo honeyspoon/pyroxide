@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────
-// 25: catch_mojo_call — panic-safe FFI + string output
+// 25: catch_panic_at_ffi — panic-safe FFI + string output
 // ─────────────────────────────────────────────────────────
 //
-// First example that actually uses catch_mojo_call (it was in the
+// First example that actually uses catch_panic_at_ffi (it was in the
 // prelude but never demonstrated). Also tests Mojo writing string
 // data into a Rust buffer (reverse of example 10).
 
@@ -14,28 +14,28 @@ unsafe extern "C" {
 }
 
 fn main() {
-    // ── catch_mojo_call: wrap FFI in panic-safe boundary ──
+    // ── catch_panic_at_ffi: wrap FFI in panic-safe boundary ──
     // This is how Rust callbacks exported to Mojo should be wrapped.
     // Here we use it to demonstrate the pattern, even though we're
     // calling Mojo (not being called by Mojo).
 
-    let result = catch_mojo_call(|| unsafe { safe_sqrt(25.0) });
+    let result = catch_panic_at_ffi(|| unsafe { safe_sqrt(25.0) });
     assert!((result - 5.0).abs() < 1e-6);
-    println!("  catch_mojo_call(sqrt(25)) = {result:.1} [ok]");
+    println!("  catch_panic_at_ffi(sqrt(25)) = {result:.1} [ok]");
 
-    let sentinel = catch_mojo_call(|| unsafe { safe_sqrt(-1.0) });
+    let sentinel = catch_panic_at_ffi(|| unsafe { safe_sqrt(-1.0) });
     assert_eq!(sentinel, -1.0);
-    println!("  catch_mojo_call(sqrt(-1)) = {sentinel} (sentinel) [ok]");
+    println!("  catch_panic_at_ffi(sqrt(-1)) = {sentinel} (sentinel) [ok]");
 
-    // If the closure panics, catch_mojo_call returns Default::default()
-    let panicked = catch_mojo_call(|| -> f64 {
+    // If the closure panics, catch_panic_at_ffi returns Default::default()
+    let panicked = catch_panic_at_ffi(|| -> f64 {
         if true {
             panic!("intentional test panic");
         }
         42.0
     });
     assert_eq!(panicked, 0.0); // f64::default() = 0.0
-    println!("  catch_mojo_call(panic) = {panicked} (default) [ok]");
+    println!("  catch_panic_at_ffi(panic) = {panicked} (default) [ok]");
 
     // ── String output: Mojo writes into Rust buffer ──
     let name = "Rust";
