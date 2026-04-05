@@ -23,8 +23,8 @@ extern "C" fn my_callback() -> f64 {
 Pros: Simple, zero-cost on success (catch_unwind is free when no panic). `T::default()` is a reasonable sentinel (0 for numbers, false for bool).
 Cons: Silently swallows errors. The default value might be a valid result.
 
-### C. `catch_mojo_result` returning `MojoResult<T>`
-Tried and removed (PR #3). MojoResult is a `#[repr(C)]` tagged union, but nothing on the Mojo side reads it. Deferred to 0.2.0 if Mojo gains a convention for receiving error results from callbacks.
+### C. `catch_mojo_result` returning `MojoResult<T>` (tried and removed)
+Removed in PR #3. MojoResult is a `#[repr(C)]` tagged union, but nothing on the Mojo side reads it.
 
 ### D. abort on panic
 Pros: No silent failures.
