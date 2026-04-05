@@ -44,6 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./scripts/check-docs.sh
+      - run: ./scripts/check-stale-refs.sh
 
   machete:
     name: Unused deps
