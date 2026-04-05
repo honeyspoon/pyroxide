@@ -49,7 +49,7 @@ Option B as documented convention. Pyroxide does not enforce an error handling s
 - Sentinel values for domain errors (example 25)
 - `try/except` inside `@export` to prevent segfaults
 
-Pyroxide's role: document the ABI's `raises` trap and provide `catch_mojo_call` for the Rust→Mojo→Rust callback direction.
+Pyroxide's role: document the ABI's `raises` trap and provide `catch_panic_at_ffi` for the Rust→Mojo→Rust callback direction.
 
 ## Evidence
 

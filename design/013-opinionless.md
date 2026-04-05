@@ -16,8 +16,8 @@ Pyroxide maps conventions 1:1. Every type in pyroxide corresponds to a real conv
 | `.as_raw()` | `Int` (pointer as integer) | `*const T as isize` |
 | `MojoSlice` | `(ptr: Int, len: Int)` pair | `&[T]` (fat pointer) |
 | `MojoStr` | `(ptr: Int, len: Int)` for text | `&str` |
-| `OutParam` | Out-pointer return convention | `MaybeUninit` |
-| `catch_mojo_call` | N/A (Mojo doesn't have this) | `catch_unwind` |
+| `OutSlot` | Out-pointer return convention | `MaybeUninit` |
+| `catch_panic_at_ffi` | N/A (Mojo doesn't have this) | `catch_unwind` |
 | `TensorDescriptor` | MAX's tensor metadata layout | `#[repr(C)]` struct |
 
 Things pyroxide does NOT do:

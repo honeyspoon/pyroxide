@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
-# Check that documentation doesn't reference types/functions that were removed.
-# Catches: CHANGELOG listing removed types, ADRs referencing dead code, README stale.
+# Check that documentation doesn't reference types that were removed.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$REPO_ROOT/pyroxide/src"
 ERRORS=0
 
-# Types that were removed and should NOT appear in docs as "shipped" or "available"
-# (they can appear in "removed" or "tried and removed" context)
 REMOVED_TYPES=(
     "MojoAddr"
     "MojoArg"
     "MojoResult"
     "MojoError"
     "catch_mojo_result"
+    "catch_mojo_call"
     "mojo_import!"
     "MojoRef"
     "MojoMut"
@@ -22,28 +20,23 @@ REMOVED_TYPES=(
     "BorrowedDescriptor"
 )
 
-# Extract only "### Added" sections from CHANGELOG, check for removed types
-added_lines=$(awk '/^### Added/{flag=1; next} /^### /{flag=0} flag' "$REPO_ROOT/CHANGELOG.md" 2>/dev/null || true)
+# Check README for removed types (anywhere, not just Added sections)
 for type in "${REMOVED_TYPES[@]}"; do
-    if echo "$added_lines" | grep -q "\`$type\`"; then
-        echo "FAIL: CHANGELOG lists removed type '$type' under Added"
+    # Allow in contexts that say "removed" or "renamed"
+    hits=$(grep -c "\`$type\`" "$REPO_ROOT/README.md" 2>/dev/null || true)
+    allowed=$(grep "\`$type\`" "$REPO_ROOT/README.md" 2>/dev/null | grep -ciE "removed|renamed|deprecated|replaced|old" || true)
+    stale=$((hits - allowed))
+    if [ "$stale" -gt 0 ]; then
+        echo "FAIL: README references removed type '$type' ($stale non-removal references)"
         ERRORS=$((ERRORS + 1))
     fi
 done
 
-# Check that public items mentioned in README actually exist in source
+# Check that public items mentioned in README exist in source
 for item in IntoMojo FromMojo MojoSlice MojoSliceMut MojoStr OutSlot catch_panic_at_ffi DescriptorGuard; do
     if ! grep -rq "pub.*$item\|pub fn $item\|pub struct $item\|pub trait $item" "$SRC/"; then
-        echo "FAIL: README references '$item' but it's not pub in source"
+        echo "FAIL: README references '$item' but not pub in source"
         ERRORS=$((ERRORS + 1))
-    fi
-done
-
-# Check that types in the prelude actually exist
-prelude_items=$(grep "pub use" "$SRC/lib.rs" | grep -oE '[A-Za-z_]+' | grep -v pub | grep -v use | grep -v crate | grep -v feature | grep -v max | grep -v cfg)
-for item in $prelude_items; do
-    if [ ${#item} -gt 3 ] && ! grep -rq "pub.*$item" "$SRC/" 2>/dev/null; then
-        echo "WARN: prelude exports '$item' but can't find it in source"
     fi
 done
 

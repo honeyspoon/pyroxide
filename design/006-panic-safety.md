@@ -11,10 +11,10 @@ A Rust panic unwinding across `extern "C"` is undefined behavior. If Rust code c
 ### A. Do nothing — document the risk
 Cons: UB waiting to happen. PyO3 proved this must be handled.
 
-### B. `catch_mojo_call` returning `T::default()` (chosen)
+### B. `catch_panic_at_ffi` returning `T::default()` (chosen)
 ```rust
 extern "C" fn my_callback() -> f64 {
-    catch_mojo_call(|| {
+    catch_panic_at_ffi(|| {
         // panic here is safe — caught and returns 0.0
         42.0
     })
@@ -32,7 +32,7 @@ Cons: Kills the process. Too harsh for a library.
 
 ## Decision
 
-Option B for 0.1.0. `catch_mojo_call` is for the reverse-FFI direction (Mojo calling Rust callbacks). It prevents UB. The silent-default tradeoff is acceptable because the alternative (UB) is worse.
+Option B for 0.1.0. `catch_panic_at_ffi` is for the reverse-FFI direction (Mojo calling Rust callbacks). It prevents UB. The silent-default tradeoff is acceptable because the alternative (UB) is worse.
 
 Option C deferred — needs Mojo-side convention for error handling.
 
