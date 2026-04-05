@@ -8,6 +8,7 @@ use std::marker::PhantomData;
 
 /// A borrowed UTF-8 string for FFI. Pass `.as_raw()` and `.len_isize()`
 /// as two separate `Int` parameters to Mojo.
+#[repr(C)] // keep for semver compat with 0.1.0
 #[derive(Debug, Clone, Copy)]
 pub struct MojoStr<'a> {
     ptr: *const u8,
@@ -28,6 +29,12 @@ impl<'a> MojoStr<'a> {
     #[inline]
     pub fn as_raw(&self) -> isize {
         self.ptr as isize
+    }
+
+    /// Raw pointer to the string data.
+    #[deprecated(since = "0.1.1", note = "use as_raw() instead")]
+    pub fn ptr(&self) -> *const u8 {
+        self.ptr
     }
 
     pub fn len(&self) -> usize {
