@@ -1,10 +1,15 @@
 // ─────────────────────────────────────────────────────────
-// 25: catch_panic_at_ffi — panic-safe FFI + string output
+// 25: catch_panic_at_ffi — prevent Rust panics from crossing FFI
 // ─────────────────────────────────────────────────────────
 //
-// First example that actually uses catch_panic_at_ffi (it was in the
-// prelude but never demonstrated). Also tests Mojo writing string
-// data into a Rust buffer (reverse of example 10).
+// catch_panic_at_ffi catches RUST PANICS only. It does NOT catch:
+//   - Mojo errors (those segfault if uncaught)
+//   - Hardware exceptions (segfaults, SIGBUS)
+//
+// Use case: wrap Rust code that Mojo calls back into, so a panic
+// in the callback returns a default value instead of UB.
+//
+// This example also tests Mojo writing string data into a Rust buffer.
 
 use pyroxide::prelude::*;
 
@@ -13,29 +18,28 @@ unsafe extern "C" {
     fn write_greeting(name_ptr: isize, name_len: isize, buf_ptr: isize, buf_len: isize) -> isize;
 }
 
+// This simulates what a Rust callback exported to Mojo would look like:
+#[allow(dead_code, reason = "demonstration of the callback pattern")]
+extern "C" fn example_callback(x: f64) -> f64 {
+    // If the Rust code inside panics, this prevents UB
+    catch_panic_at_ffi(|| {
+        assert!(x >= 0.0, "negative input");
+        x.sqrt()
+    })
+}
+
 fn main() {
-    // ── catch_panic_at_ffi: wrap FFI in panic-safe boundary ──
-    // This is how Rust callbacks exported to Mojo should be wrapped.
-    // Here we use it to demonstrate the pattern, even though we're
-    // calling Mojo (not being called by Mojo).
-
-    let result = catch_panic_at_ffi(|| unsafe { safe_sqrt(25.0) });
-    assert!((result - 5.0).abs() < 1e-6);
-    println!("  catch_panic_at_ffi(sqrt(25)) = {result:.1} [ok]");
-
-    let sentinel = catch_panic_at_ffi(|| unsafe { safe_sqrt(-1.0) });
-    assert_eq!(sentinel, -1.0);
-    println!("  catch_panic_at_ffi(sqrt(-1)) = {sentinel} (sentinel) [ok]");
-
-    // If the closure panics, catch_panic_at_ffi returns Default::default()
-    let panicked = catch_panic_at_ffi(|| -> f64 {
-        if true {
-            panic!("intentional test panic");
-        }
-        42.0
+    // ── Demonstrate panic recovery ──
+    // The real use case is callbacks, but we can test the mechanism directly.
+    let panicked: f64 = catch_panic_at_ffi(|| {
+        panic!("intentional test panic");
     });
-    assert_eq!(panicked, 0.0); // f64::default() = 0.0
-    println!("  catch_panic_at_ffi(panic) = {panicked} (default) [ok]");
+    assert_eq!(panicked, 0.0); // f64::default()
+    println!("  panic caught, returned default (0.0) [ok]");
+
+    let ok = catch_panic_at_ffi(|| 42.0f64);
+    assert_eq!(ok, 42.0);
+    println!("  no panic, returned value (42.0) [ok]");
 
     // ── String output: Mojo writes into Rust buffer ──
     let name = "Rust";

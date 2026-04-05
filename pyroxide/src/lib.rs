@@ -7,8 +7,8 @@
 //!
 //! - **No dangling pointers**: [`MojoRef`](bridge::MojoRef) ties the pointer's
 //!   validity to the Rust borrow's lifetime.
-//! - **No panics across FFI**: [`catch_mojo_call`](trampoline::catch_mojo_call)
-//!   catches panics at the boundary, preventing undefined behavior.
+//! - **No panics across FFI**: [`catch_panic_at_ffi`](trampoline::catch_panic_at_ffi)
+//!   catches Rust panics at the boundary, preventing undefined behavior.
 //! - **No layout mismatch**: [`mojo_type!`] enforces `#[repr(C)]` and zerocopy
 //!   derives at compile time.
 //! - **Ownership is explicit**: Rust owns the data, Mojo borrows via pointer.
@@ -55,8 +55,6 @@ pub mod prelude {
     pub use crate::bridge::{FromMojo, IntoMojo, MojoMut, MojoRef, MojoSlice, MojoSliceMut};
     pub use crate::mojo_type;
     pub use crate::string::MojoStr;
-    #[allow(deprecated, reason = "re-export for backwards compat")]
-    pub use crate::trampoline::catch_mojo_call;
     pub use crate::trampoline::catch_panic_at_ffi;
     #[cfg(feature = "max")]
     pub use crate::types::max;

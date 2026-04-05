@@ -34,6 +34,6 @@ Cons: Requires proc macro. Primitive types (f64, i32) wouldn't get `.as_raw()`.
 
 Option B. The blanket impl means any `#[repr(C)]` zerocopy type — including primitives, arrays, and user structs — gets `.as_raw()` automatically. This is the right abstraction level for "anything with a stable byte layout can be passed to Mojo."
 
-## Open question
+## Resolved: unsealed by design
 
-Should `IntoMojo`/`FromMojo` be sealed? Currently any external type satisfying the bounds gets the methods. This is intentional — we don't want to gate-keep which types can cross FFI. The zerocopy bounds are the real safety gate.
+The traits are intentionally unsealed. Any external type satisfying the zerocopy bounds gets `.as_raw()` automatically. Sealing would gate-keep which types can cross FFI — the zerocopy bounds are the real safety gate, not trait sealing.
