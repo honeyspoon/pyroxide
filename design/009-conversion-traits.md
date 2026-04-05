@@ -19,12 +19,13 @@ Cons: Can't use method syntax (`val.as_raw()`). Less discoverable.
 ```rust
 pub trait IntoMojo: IntoBytes + Immutable + KnownLayout {
     fn as_raw(&self) -> isize { ... }
-    fn as_mojo(&self) -> MojoRef<'_, Self> { ... }
 }
 impl<T: IntoBytes + Immutable + KnownLayout> IntoMojo for T {}
 ```
 Pros: Any zerocopy-compatible type gets `.as_raw()` for free. Method syntax. Users can write `T: IntoMojo` bounds.
 Cons: Trait with only defaulted methods — some argue this should be a free function.
+
+*Note: an earlier version also had `as_mojo() -> MojoRef<'_, Self>`, but `MojoRef` was removed in the stdlib-idioms refactor — the borrow checker already tracks `&T` lifetimes directly.*
 
 ### C. Methods only on mojo_type! structs (via proc macro)
 Pros: Only explicitly marked types get the methods.

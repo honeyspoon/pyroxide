@@ -20,16 +20,20 @@ REMOVED_TYPES=(
     "BorrowedDescriptor"
 )
 
-# Check README for removed types (anywhere, not just Added sections)
-for type in "${REMOVED_TYPES[@]}"; do
-    # Allow in contexts that say "removed" or "renamed"
-    hits=$(grep -c "\`$type\`" "$REPO_ROOT/README.md" 2>/dev/null || true)
-    allowed=$(grep "\`$type\`" "$REPO_ROOT/README.md" 2>/dev/null | grep -ciE "removed|renamed|deprecated|replaced|old" || true)
-    stale=$((hits - allowed))
-    if [ "$stale" -gt 0 ]; then
-        echo "FAIL: README references removed type '$type' ($stale non-removal references)"
-        ERRORS=$((ERRORS + 1))
-    fi
+# Check README and ADRs for removed types
+for doc in "$REPO_ROOT/README.md" "$REPO_ROOT/design/"*.md; do
+    [ -f "$doc" ] || continue
+    docname=$(basename "$doc")
+    for type in "${REMOVED_TYPES[@]}"; do
+        # Allow in contexts that say "removed", "renamed", "earlier", "old", "Note:"
+        hits=$(grep -c "\`$type\`" "$doc" 2>/dev/null || true)
+        allowed=$(grep "\`$type\`" "$doc" 2>/dev/null | grep -ciE "removed|renamed|deprecated|replaced|old|earlier|Note:" || true)
+        stale=$((hits - allowed))
+        if [ "$stale" -gt 0 ]; then
+            echo "FAIL: $docname references removed type '$type' ($stale non-removal refs)"
+            ERRORS=$((ERRORS + 1))
+        fi
+    done
 done
 
 # Check that public items mentioned in README exist in source
