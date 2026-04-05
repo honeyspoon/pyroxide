@@ -5,8 +5,8 @@
 //!
 //! ## Safety model
 //!
-//! - **No dangling pointers**: [`MojoRef`](bridge::MojoRef) ties the pointer's
-//!   validity to the Rust borrow's lifetime.
+//! - **No dangling pointers**: [`DescriptorGuard`](types::max::DescriptorGuard) ties
+//!   tensor descriptors to the tensor's lifetime.
 //! - **No panics across FFI**: [`catch_panic_at_ffi`](trampoline::catch_panic_at_ffi)
 //!   catches Rust panics at the boundary, preventing undefined behavior.
 //! - **No layout mismatch**: [`mojo_type!`] enforces `#[repr(C)]` and zerocopy
@@ -51,13 +51,14 @@ pub mod types;
 pub use zerocopy;
 
 pub mod prelude {
-    pub use crate::abi::OutParam;
-    pub use crate::bridge::{FromMojo, IntoMojo, MojoMut, MojoRef, MojoSlice, MojoSliceMut};
+    pub use crate::bridge::{FromMojo, IntoMojo, MojoSlice, MojoSliceMut, OutSlot};
     pub use crate::mojo_type;
     pub use crate::string::MojoStr;
     pub use crate::trampoline::catch_panic_at_ffi;
     #[cfg(feature = "max")]
     pub use crate::types::max;
+    #[cfg(feature = "max")]
+    pub use crate::types::max::DescriptorGuard;
     pub use crate::types::primitives::*;
 }
 

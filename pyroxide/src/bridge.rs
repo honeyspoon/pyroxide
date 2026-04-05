@@ -5,15 +5,10 @@
 //! **Rust always owns the data.** Mojo borrows it via pointer for the
 //! duration of the FFI call.
 //!
-//! 1. [`MojoRef`] borrows `&T` — Mojo reads through the pointer
-//! 2. [`MojoMut`] borrows `&mut T` — Mojo reads and writes
-//! 3. Mojo must not store the pointer beyond the call
-//! 4. Rust must not move or drop the value while Mojo holds a pointer
-//!
 //! # Thread safety
 //!
-//! All handle types are `!Send` and `!Sync`. They represent borrowed
-//! pointers valid only for one FFI call on the calling thread.
+//! `MojoSlice` and `MojoSliceMut` are `!Send` and `!Sync` — they
+//! represent borrowed pointers valid only on the calling thread.
 
 use std::marker::PhantomData;
 use std::ptr::NonNull;
@@ -33,14 +28,6 @@ pub trait IntoMojo: IntoBytes + Immutable + KnownLayout {
     {
         std::ptr::from_ref(self) as isize
     }
-
-    /// Get a lifetime-bound immutable handle.
-    fn as_mojo(&self) -> MojoRef<'_, Self>
-    where
-        Self: Sized,
-    {
-        MojoRef::new(self)
-    }
 }
 
 /// A type that can receive data written by Mojo. Zero-copy.
@@ -55,14 +42,6 @@ pub trait FromMojo: FromBytes + IntoBytes + Immutable + KnownLayout {
         std::ptr::from_mut(self) as isize
     }
 
-    /// Get a lifetime-bound mutable handle.
-    fn as_mojo_mut(&mut self) -> MojoMut<'_, Self>
-    where
-        Self: Sized,
-    {
-        MojoMut::new(self)
-    }
-
     /// Reinterpret a byte buffer as this type. Zero-copy.
     fn from_mojo_bytes(bytes: &[u8]) -> Option<&Self>
     where
@@ -74,71 +53,6 @@ pub trait FromMojo: FromBytes + IntoBytes + Immutable + KnownLayout {
 
 impl<T: IntoBytes + Immutable + KnownLayout> IntoMojo for T {}
 impl<T: FromBytes + IntoBytes + Immutable + KnownLayout> FromMojo for T {}
-
-// ── MojoRef ──
-
-/// Immutable, lifetime-bound pointer to Rust data for Mojo.
-///
-/// `MojoRef` is `!Send` and `!Sync` — enforced via `PhantomData<*const ()>`.
-pub struct MojoRef<'a, T: IntoBytes + Immutable> {
-    ptr: NonNull<T>,
-    _marker: PhantomData<&'a T>,
-    _not_send: PhantomData<*const ()>, // enforce !Send + !Sync
-}
-
-impl<'a, T: IntoBytes + Immutable> MojoRef<'a, T> {
-    #[inline]
-    pub fn new(val: &'a T) -> Self {
-        Self {
-            ptr: NonNull::from(val),
-            _marker: PhantomData,
-            _not_send: PhantomData,
-        }
-    }
-
-    /// Address as `isize` for Mojo's `Int` parameter.
-    #[inline]
-    pub fn as_raw(&self) -> isize {
-        self.ptr.as_ptr() as isize
-    }
-
-    #[inline]
-    pub fn as_ptr(&self) -> *const T {
-        self.ptr.as_ptr()
-    }
-}
-
-// ── MojoMut ──
-
-/// Mutable, lifetime-bound pointer. Mojo can read and write.
-///
-/// `MojoMut` is `!Send` and `!Sync` — enforced via `PhantomData<*const ()>`.
-pub struct MojoMut<'a, T: IntoBytes + FromBytes> {
-    ptr: NonNull<T>,
-    _marker: PhantomData<&'a mut T>,
-    _not_send: PhantomData<*const ()>,
-}
-
-impl<'a, T: IntoBytes + FromBytes> MojoMut<'a, T> {
-    #[inline]
-    pub fn new(val: &'a mut T) -> Self {
-        Self {
-            ptr: NonNull::from(&mut *val),
-            _marker: PhantomData,
-            _not_send: PhantomData,
-        }
-    }
-
-    #[inline]
-    pub fn as_raw(&self) -> isize {
-        self.ptr.as_ptr() as isize
-    }
-
-    #[inline]
-    pub fn as_mut_ptr(&self) -> *mut T {
-        self.ptr.as_ptr()
-    }
-}
 
 // ── MojoSlice ──
 
@@ -241,6 +155,55 @@ impl<'a, T: IntoBytes + FromBytes> MojoSliceMut<'a, T> {
     }
 }
 
+// ── OutSlot ──
+
+/// A single out-parameter slot for Mojo to write into.
+///
+/// Follows the stdlib `MaybeUninit` pattern — composable, no numbered variants.
+///
+/// ```rust,ignore
+/// let mut q = OutSlot::<i64>::new();
+/// let mut r = OutSlot::<i64>::new();
+/// unsafe { divmod(17, 5, q.as_raw(), r.as_raw()) };
+/// let (q, r) = unsafe { (q.assume_init(), r.assume_init()) };
+/// ```
+pub struct OutSlot<T> {
+    inner: std::mem::MaybeUninit<T>,
+}
+
+impl<T> OutSlot<T> {
+    /// Create an uninitialized slot.
+    #[inline]
+    pub fn new() -> Self {
+        Self {
+            inner: std::mem::MaybeUninit::uninit(),
+        }
+    }
+
+    /// Address as `isize` for Mojo's `Int` parameter.
+    #[inline]
+    pub fn as_raw(&mut self) -> isize {
+        self.inner.as_mut_ptr() as isize
+    }
+
+    /// Extract the value after Mojo has written to it.
+    ///
+    /// # Safety
+    ///
+    /// Mojo must have written a valid `T` to this slot's address.
+    #[inline]
+    pub unsafe fn assume_init(self) -> T {
+        // SAFETY: caller guarantees Mojo wrote to the pointer
+        unsafe { self.inner.assume_init() }
+    }
+}
+
+impl<T> Default for OutSlot<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // ── Tests ──
 
 #[cfg(test)]
@@ -268,7 +231,6 @@ mod tests {
         let p = TestPoint { x: 1.0, y: 2.0 };
         let addr = p.as_raw();
         assert_ne!(addr, 0);
-        // Round-trip: reconstruct reference from address
         let ptr = addr as *const TestPoint;
         let recovered = unsafe { &*ptr };
         assert_eq!(recovered.x, 1.0);
@@ -284,29 +246,14 @@ mod tests {
     }
 
     #[test]
-    fn mojo_ref_preserves_address() {
-        let p = TestPoint { x: 3.0, y: 4.0 };
-        let r = p.as_mojo();
-        assert_eq!(r.as_raw(), &p as *const TestPoint as isize);
-        assert_eq!(r.as_ptr(), &p as *const TestPoint);
-    }
-
-    #[test]
-    fn mojo_mut_preserves_address() {
-        let mut p = TestPoint { x: 1.0, y: 2.0 };
-        let addr = &mut p as *mut TestPoint as isize;
-        let m = p.as_mojo_mut();
-        assert_eq!(m.as_raw(), addr);
-    }
-
-    #[test]
     fn mojo_slice_ptr_and_len() {
         let data = [1.0f64, 2.0, 3.0];
         let s = MojoSlice::new(&data);
         assert_eq!(s.len(), 3);
         assert!(!s.is_empty());
-        assert_eq!(s.size_bytes(), 24); // 3 * 8
+        assert_eq!(s.size_bytes(), 24);
         assert_eq!(s.as_raw(), data.as_ptr() as isize);
+        assert_eq!(s.len_isize(), 3);
     }
 
     #[test]
@@ -315,7 +262,6 @@ mod tests {
         let s = MojoSlice::new(empty);
         assert_eq!(s.len(), 0);
         assert!(s.is_empty());
-        assert_eq!(s.size_bytes(), 0);
     }
 
     #[test]
@@ -336,19 +282,25 @@ mod tests {
 
     #[test]
     fn from_mojo_bytes_wrong_size() {
-        let bytes = [0u8; 3]; // too small for TestPoint (16 bytes)
+        let bytes = [0u8; 3];
         assert!(TestPoint::from_mojo_bytes(&bytes).is_none());
     }
 
     #[test]
     fn primitives_implement_into_mojo() {
-        // Verify blanket impl works for primitive types
         let v: f64 = 3.14;
-        let addr = v.as_raw();
-        assert_ne!(addr, 0);
-
+        assert_ne!(v.as_raw(), 0);
         let i: i32 = 42;
-        let addr2 = i.as_raw();
-        assert_ne!(addr2, 0);
+        assert_ne!(i.as_raw(), 0);
+    }
+
+    #[test]
+    fn out_slot_basic() {
+        let mut slot = OutSlot::<i64>::new();
+        let addr = slot.as_raw();
+        // Simulate Mojo writing to the slot
+        unsafe { *(addr as *mut i64) = 42 };
+        let val = unsafe { slot.assume_init() };
+        assert_eq!(val, 42);
     }
 }

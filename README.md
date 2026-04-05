@@ -38,8 +38,8 @@ Pyroxide lets Rust and Mojo share data with zero copies. Define types once in Ru
 
 | Module | What |
 |--------|------|
-| `bridge` | `IntoMojo`, `FromMojo`, `MojoRef`, `MojoMut`, `MojoSlice`, `MojoSliceMut` |
-| `abi` | ABI type mapping docs, `OutParam` |
+| `bridge` | `IntoMojo`, `FromMojo`, `MojoSlice`, `MojoSliceMut`, `OutSlot` |
+| `abi` | ABI type mapping docs |
 | `trampoline` | `catch_mojo_call` (panic-safe FFI) |
 | `string` | `MojoStr` (ptr+len for FFI) |
 | `types::max` | `DType`, `Tensor<T>`, `TensorView<T>`, `TensorDescriptor`, `TensorShape` |
@@ -88,11 +88,11 @@ Progressive tutorial — each builds on the previous.
 | 05 | [`dtype_generic`](examples/examples/05_dtype_generic.rs) | One Mojo template → f32/f64/i32 |
 | 06 | [`comptime`](examples/examples/06_comptime.rs) | Compile-time unrolling, baked constants |
 | 07 | [`embeddings`](examples/examples/07_embeddings.rs) | HuggingFace model → Mojo inference → similarity matrix |
-| 08 | [`abi_edge_cases`](examples/examples/08_abi_edge_cases.rs) | Bool, Int boundaries, Float64 specials, `OutParam` |
+| 08 | [`abi_edge_cases`](examples/examples/08_abi_edge_cases.rs) | Bool, Int boundaries, Float64 specials, `OutSlot` |
 | 09 | [`image_blur`](examples/examples/09_image_blur.rs) | Large mutable buffer, `MojoSliceMut` |
 | 10 | [`tokenizer`](examples/examples/10_tokenizer.rs) | `MojoStr` string passing, variable-length output |
 | 11 | [`neural_layer`](examples/examples/11_neural_layer.rs) | Linear + ReLU + softmax, 4 `TensorDescriptor`s |
-| 12 | [`accumulator`](examples/examples/12_accumulator.rs) | Stateful struct, repeated `MojoMut` across calls |
+| 12 | [`accumulator`](examples/examples/12_accumulator.rs) | Stateful struct, repeated `FromMojo` across calls |
 | 13 | [`sorting`](examples/examples/13_sorting.rs) | In-place sort + reverse, verify against Rust |
 | 14 | [`mandelbrot`](examples/examples/14_mandelbrot.rs) | Compute-heavy grid, ASCII visualization |
 | 15 | [`nested_structs`](examples/examples/15_nested_structs.rs) | Line (2 Points), Triangle (3 Points), centroid |
@@ -164,7 +164,7 @@ def compute_energy(addr: Int) -> Float64:
 
 ### Safety
 
-- **Dangling pointers**: `MojoRef<'a, T>` ties pointer lifetime to the Rust borrow
+- **Dangling pointers**: `DescriptorGuard` ties tensor descriptors to the tensor's lifetime
 - **Panics across FFI**: `catch_mojo_call` catches panics (unwinding across `extern "C"` is UB)
 - **Layout mismatch**: `mojo_type!` enforces `#[repr(C)]` at compile time
 - **Ownership**: Rust owns, Mojo borrows — documented and enforced by types
@@ -184,7 +184,7 @@ Early stage. API will change.
 | `mojo_type!`, `IntoMojo`/`FromMojo` | 31 unit tests + 26 examples |
 | `MojoSlice` / `MojoSliceMut` | Tested across 15+ examples |
 | `MojoStr` | Tested (tokenizer, string output) |
-| `OutParam` | Tested (divmod, ABI edge cases) |
+| `OutSlot` | Tested (divmod, ABI edge cases) |
 | `catch_mojo_call` | Tested (panic recovery example) |
 | `Tensor<T>` / `TensorView<T>` | Tested with HuggingFace + neural layer |
 | `abi` module | Empirically verified against Mojo 0.26 |
