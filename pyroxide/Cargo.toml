@@ -1,6 +1,6 @@
 [package]
 name = "pyroxide"
-description = "Zero-copy FFI bridge between Rust and Mojo"
+description = "Zero-copy FFI bridge between Rust and Mojo (64-bit required for MAX tensor types)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
