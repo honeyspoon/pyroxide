@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 
 /// A borrowed UTF-8 string for FFI. Pass `.as_raw()` and `.len_isize()`
 /// as two separate `Int` parameters to Mojo.
-#[repr(C)] // keep for semver compat with 0.1.0
+#[repr(C)] // published in 0.1.1 — removing is semver-breaking, defer to 0.2.0
 #[derive(Debug, Clone, Copy)]
 pub struct MojoStr<'a> {
     ptr: *const u8,

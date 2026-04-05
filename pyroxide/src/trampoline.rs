@@ -1,17 +1,29 @@
-//! Panic-safe trampoline for the Rust↔Mojo FFI boundary.
+//! Panic-safe trampoline for the FFI boundary.
 //!
-//! A Rust panic unwinding across `extern "C"` is undefined behavior.
-//! [`catch_mojo_call`] wraps a closure in `catch_unwind` to prevent this.
+//! [`catch_mojo_call`] catches **Rust panics** inside a closure, preventing
+//! undefined behavior from stack unwinding across `extern "C"`.
 //!
-//! # Example
+//! # What it catches
+//!
+//! - Rust panics (`panic!`, `unwrap()` failure, assertion failures)
+//!
+//! # What it does NOT catch
+//!
+//! - Mojo errors (those segfault if uncaught — see `abi` module docs)
+//! - Hardware exceptions (segfaults, SIGBUS, etc.)
+//! - Any error originating in Mojo code
+//!
+//! # When to use
+//!
+//! Use this when Rust code is called back from Mojo (e.g., function pointers),
+//! or when wrapping any closure that might panic before an FFI call:
 //!
 //! ```rust,ignore
-//! use pyroxide::trampoline::catch_mojo_call;
-//!
+//! // Callback that Mojo will invoke:
 //! #[unsafe(no_mangle)]
 //! extern "C" fn my_callback() -> f64 {
 //!     catch_mojo_call(|| {
-//!         // safe Rust code — panics won't cross FFI
+//!         // If this panics, returns 0.0 instead of unwinding across FFI
 //!         42.0
 //!     })
 //! }
@@ -28,10 +40,12 @@ fn panic_message(payload: &Box<dyn Any + Send>) -> &str {
         .unwrap_or("unknown panic")
 }
 
-/// Wrap a closure so panics are caught at the FFI boundary.
+/// Catch Rust panics at the FFI boundary.
 ///
-/// On panic, prints the message to stderr and returns `T::default()`
-/// (0 for numbers, false for bool, null for pointers).
+/// Wraps a closure in [`std::panic::catch_unwind`]. On panic, prints
+/// the message to stderr and returns `T::default()`.
+///
+/// **This does NOT catch Mojo errors or segfaults** — only Rust panics.
 #[inline]
 pub fn catch_mojo_call<T: Default>(f: impl FnOnce() -> T) -> T {
     match panic::catch_unwind(AssertUnwindSafe(f)) {
@@ -61,7 +75,7 @@ mod tests {
         let result: f64 = catch_mojo_call(|| {
             panic!("test panic");
         });
-        assert_eq!(result, 0.0); // f64::default()
+        assert_eq!(result, 0.0);
     }
 
     #[test]
