@@ -17,7 +17,7 @@ use pyroxide::prelude::*;
 
 // Define a custom type. `mojo_type!` adds #[repr(C)] and all
 // zerocopy derives, so the struct automatically implements
-// IntoMojo (→ .as_mojo()) and FromMojo (→ .as_mojo_mut()).
+// IntoMojo (→ .as_raw()) and FromMojo (→ .as_raw_mut()).
 mojo_type! {
     pub struct Color {
         pub r: f64,
