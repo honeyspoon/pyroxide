@@ -19,6 +19,7 @@ Pyroxide maps conventions 1:1. Every type in pyroxide corresponds to a real conv
 | `OutSlot` | Out-pointer return convention | `MaybeUninit` |
 | `catch_panic_at_ffi` | N/A (Mojo doesn't have this) | `catch_unwind` |
 | `TensorDescriptor` | MAX's tensor metadata layout | `#[repr(C)]` struct |
+| `DescriptorGuard` | Scoped borrow of tensor metadata | `MutexGuard` pattern |
 
 Things pyroxide does NOT do:
 - Generate Mojo code from Rust types
@@ -33,4 +34,4 @@ Mojo is a new language. Its conventions are still evolving. If pyroxide invents 
 
 ## Evidence
 
-ADR-011 documents every abstraction we tried and removed. Each was removed because it didn't map a real convention. The 26 examples prove the thin mapping is sufficient for real workloads including HuggingFace model inference.
+ADR-011 documents every abstraction we tried and removed. Each was removed because it didn't map a real convention. The 31 examples prove the thin mapping is sufficient for real workloads including HuggingFace model inference, concurrent threading, and conditional out-parameters.

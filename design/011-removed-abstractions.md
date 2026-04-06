@@ -19,6 +19,12 @@ Generated safe wrappers from function declarations. Removed because we didn't kn
 ### Parallelize example (early)
 `parallelize` in Mojo segfaults when called from a shared library loaded via FFI — the Mojo thread pool isn't initialized. Removed the example. Documented the limitation.
 
+### MojoRef / MojoMut (PR #24)
+Lifetime-bound pointer handles. Removed because `&T` + `IntoMojo::as_raw()` provides the same invariant — the borrow checker already tracks the reference lifetime. See ADR-015.
+
+### OutParam::call1/2/3 (PR #24)
+Closure-based out-parameter helper with numbered variants. Replaced by `OutSlot<T>` which follows the stdlib `MaybeUninit` pattern and composes to any count. See ADR-005.
+
 ## Principle
 
 Pyroxide maps Mojo conventions to Rust conventions 1:1. It does not invent abstractions that exist in neither language. Each removal was motivated by finding zero callers or finding that the abstraction added ceremony without preventing real mistakes.
