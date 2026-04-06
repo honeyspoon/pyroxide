@@ -35,8 +35,9 @@ Option B. `TensorDescriptor` is a 152-byte `#[repr(C)]` struct that passes all t
 
 ## Tradeoffs
 
-- `descriptor()` returns by value — captures a snapshot of the data pointer. If the `Tensor` is moved/dropped, the descriptor's `data_ptr` dangles. This is documented.
+- `descriptor()` returns `DescriptorGuard<'_>` (see ADR-017) — the compiler prevents dangling `data_ptr` by tying the descriptor's lifetime to the tensor.
 - `Tensor<T>` implements `Deref<[T]>` for slice access — convenient but exposes methods like `sort()` that don't respect tensor shape.
+- Strides are computed for contiguous layout but no Mojo example reads them. Non-contiguous tensors are not yet supported.
 
 ## Evidence
 

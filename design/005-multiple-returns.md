@@ -1,10 +1,10 @@
 # ADR-005: Multiple return values (OutSlot)
 
-## Status: Accepted
+## Status: Accepted (revised)
 
 ## Context
 
-Mojo `@export` functions cannot return tuples across the C ABI. The Mojo convention is out-pointers: Mojo writes results into caller-provided addresses.
+Mojo `@export` functions cannot return tuples across the C ABI. The Mojo convention is out-pointers.
 
 ## Options considered
 
@@ -14,30 +14,24 @@ let mut q: i64 = 0;
 let mut r: i64 = 0;
 unsafe { divmod(17, 5, &mut q as *mut i64 as isize, &mut r as *mut i64 as isize) };
 ```
-Pros: No abstraction.
-Cons: 4 lines for 2 values. Uses `Default` (wasteful init).
+Cons: Verbose. Wastes `Default::default()` that Mojo overwrites.
 
-### B. OutSlot with `Default` init
+### B. Closure-based `OutParam::call1/2/3` (tried, removed)
+Numbered variants — un-Rust, doesn't compose past 3.
+
+### C. `OutSlot<T>` following `MaybeUninit` pattern (chosen)
 ```rust
-let (q, r): (i64, i64) = OutSlot::call2(|qp, rp| unsafe { divmod(17, 5, qp, rp) });
+let mut q = OutSlot::<i64>::uninit();
+let mut r = OutSlot::<i64>::uninit();
+unsafe { divmod(17, 5, q.as_raw(), r.as_raw()) };
+let (q, r) = unsafe { (q.assume_init(), r.assume_init()) };
 ```
-Tried first, but wastes a `Default::default()` call that Mojo immediately overwrites.
-
-### C. OutSlot with `MaybeUninit` (chosen)
-```rust
-let (q, r): (i64, i64) = unsafe { OutSlot::call2(|qp, rp| divmod(17, 5, qp, rp)) };
-```
-Pros: Zero-cost (no wasted init). Verified via assembly: compiles to same code as manual.
-Cons: Must be `unsafe fn` — caller promises Mojo writes to all pointers.
-
-### D. Tuple trait on `(A, B)`, `(A, B, C)`, etc.
-Pros: More Rust-idiomatic.
-Cons: Complex implementation for marginal ergonomic gain over `call2`/`call3`.
+Composable (create any number), follows stdlib naming (`uninit()` mirrors `MaybeUninit::uninit()`).
 
 ## Decision
 
-Option C. `OutSlot::call1/2/3` as `unsafe fn` with `MaybeUninit`. Soundness is documented: undefined behavior if Mojo doesn't write.
+Option C. `OutSlot<T>` with `uninit()`, `as_raw()`, `assume_init()`.
 
 ## Evidence
 
-Example 08 (ABI edge cases) uses `OutSlot::call2` for divmod.
+Example 08 (divmod), example 31 (conditional out-param with sentinel).

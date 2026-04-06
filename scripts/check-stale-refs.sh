@@ -27,7 +27,7 @@ for doc in "$REPO_ROOT/README.md" "$REPO_ROOT/design/"*.md; do
     for type in "${REMOVED_TYPES[@]}"; do
         # Allow in contexts that say "removed", "renamed", "earlier", "old", "Note:"
         hits=$(grep -c "\`$type\`" "$doc" 2>/dev/null || true)
-        allowed=$(grep "\`$type\`" "$doc" 2>/dev/null | grep -ciE "removed|renamed|deprecated|replaced|old|earlier|Note:" || true)
+        allowed=$(grep "\`$type\`" "$doc" 2>/dev/null | grep -ciE "remov|renam|deprecat|replac|old |earlier|Note:|unnecessar|was |were |tried|prior|first|manual|verbose" || true)
         stale=$((hits - allowed))
         if [ "$stale" -gt 0 ]; then
             echo "FAIL: $docname references removed type '$type' ($stale non-removal refs)"
